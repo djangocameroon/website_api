@@ -1,0 +1,7 @@
+Django==5.0.1
+django-cors-headers==4.3.1
+django-oauth-toolkit==2.3.0
+djangorestframework==3.14.0
+drf-yasg==1.21.7
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
