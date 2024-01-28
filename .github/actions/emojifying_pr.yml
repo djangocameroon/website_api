@@ -1,0 +1,16 @@
+name: Emojify PR Title
+
+on: pull_request
+
+jobs:
+  emojify-pr-title:
+    runs-on: ubuntu-latest
+    name: Emojify PR Title
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Emojify PR Title
+        uses: pineapplelol/emojify-pr-title@v1.5.4
+        with:
+          use-emoji-map: true
+          emoji-map: https://raw.githubusercontent.com/hack4impact-uiuc/falling-fruit/main/.github/workflows/mappings.json
