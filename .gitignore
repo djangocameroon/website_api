@@ -26,6 +26,7 @@ media/
 .vscode/
 .idea/
 *.pydevproject
+.history/
 
 # Ignore local development settings
 local_settings.py
