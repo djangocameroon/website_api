@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -28,4 +28,7 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("admin/", admin.site.urls),
+
+    # Users app
+    path("api/",include('apps.users.routes.api')),
 ]
