@@ -57,6 +57,9 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
+      - name: Create .env file from template
+        run: cp .env.example .env
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3.0.0
         id: deploy-to-webapp
