@@ -9,13 +9,13 @@ from .apps import CUSTOM_APPS, THIRD_PARTY_APPS
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Load environment variables from .env file
-if not load_dotenv(os.path.join(BASE_DIR, ".env")):
-    print("No .env file found")
-    exit()
+# if not load_dotenv(os.path.join(BASE_DIR, ".env")):
+#     print("No .env file found")
+#     exit()
 
 # Check if environment variables are set
-if not os.getenv("SECRET_KEY"):
-    exit()
+# if not os.getenv("SECRET_KEY"):
+#     exit()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
