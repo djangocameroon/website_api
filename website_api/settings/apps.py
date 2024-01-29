@@ -6,5 +6,6 @@ THIRD_PARTY_APPS = [
 ]
 
 CUSTOM_APPS = [
-    'apps',
+    "apps.auth",
+    "apps.events",
 ]
