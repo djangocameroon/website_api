@@ -30,14 +30,14 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("admin/", admin.site.urls),
-    path(
-        f"{BASE_API_URL}/users/",
-        include(("apps.users.routes", "apps.users")),
-        name="users",
-    ),
-    path(
-        f"{BASE_API_URL}/events/",
-        include(("apps.events.routes", "apps.events")),
-        name="events",
-    ),
+    # path(
+    #     f"{BASE_API_URL}/users/",
+    #     include(("apps.users.routes", "apps.users")),
+    #     name="users",
+    # ),
+    # path(
+    #     f"{BASE_API_URL}/events/",
+    #     include(("apps.events.routes", "apps.events")),
+    #     name="events",
+    # ),
 ]
