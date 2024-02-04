@@ -1,6 +1,6 @@
 from django.db import models
 
-from events.models.constants import (
+from .constants import (
     COMMUNITIES,
     EVENT_CATEGORIES,
     EVENT_TYPES,
@@ -8,7 +8,7 @@ from events.models.constants import (
     EventCategory,
     EventType,
 )
-from events.models.speaker import Speaker
+from .speaker import Speaker
 
 
 class Event(models.Model):

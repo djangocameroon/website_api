@@ -1,6 +1,6 @@
 from django.db import models
 
-from events.models.event import Event
+from .event import Event
 
 
 class Reservation(models.Model):
