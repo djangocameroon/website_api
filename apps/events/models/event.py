@@ -27,7 +27,7 @@ class Event(models.Model):
         max_length=50, choices=EVENT_TYPES, default=EventType.IN_PERSON
     )
     speaker = models.ForeignKey(Speaker, on_delete=models.CASCADE)
-    tags = models.ManyToManyField("EventTag", related_name="events")
+    tags = models.ManyToManyField("EventTag", related_name="events", default=None)
     # TODO: Add field for displying who created the event
     # created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     published = models.BooleanField(default=False)

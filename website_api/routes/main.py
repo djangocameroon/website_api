@@ -7,7 +7,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from utils.main import load_documentation
 
-from apps.events.views.event import EventViewSet
+from apps.events.views import EventViewSet, SpeakerViewSet
 from rest_framework.routers import SimpleRouter
 
 schema_view = get_schema_view(
@@ -27,6 +27,9 @@ BASE_API_URL = "api/v1"
 
 event_router = SimpleRouter()
 event_router.register("", EventViewSet, basename="events")
+
+speaker_router = SimpleRouter()
+speaker_router.register("", SpeakerViewSet, basename="speakers")
 
 urlpatterns = (
     [
@@ -55,6 +58,11 @@ urlpatterns = (
         #     name="events",
         # ),
         path(f"{BASE_API_URL}/events/", include(event_router.urls), name="events"),
+        path(
+            f"{BASE_API_URL}/speakers/",
+            include(speaker_router.urls),
+            name="speakers",
+        ),
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
