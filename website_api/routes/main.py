@@ -5,10 +5,16 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from django.conf import settings
 from django.conf.urls.static import static
-from utils.main import load_documentation
-
-from apps.events.views import EventViewSet, SpeakerViewSet
 from rest_framework.routers import SimpleRouter
+
+from utils.main import load_documentation
+from apps.events.views import (
+    EventViewSet,
+    SpeakerViewSet,
+    ReservationViewSet,
+    get_event_reservations,
+    check_in,
+)
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -25,11 +31,14 @@ schema_view = get_schema_view(
 
 BASE_API_URL = "api/v1"
 
-event_router = SimpleRouter()
+event_router = SimpleRouter(trailing_slash=False)
 event_router.register("", EventViewSet, basename="events")
 
-speaker_router = SimpleRouter()
+speaker_router = SimpleRouter(trailing_slash=False)
 speaker_router.register("", SpeakerViewSet, basename="speakers")
+
+reservation_router = SimpleRouter(trailing_slash=False)
+reservation_router.register("", ReservationViewSet, basename="reservations")
 
 urlpatterns = (
     [
@@ -62,6 +71,21 @@ urlpatterns = (
             f"{BASE_API_URL}/speakers/",
             include(speaker_router.urls),
             name="speakers",
+        ),
+        path(
+            f"{BASE_API_URL}/reservations/",
+            include(reservation_router.urls),
+            name="reservations",
+        ),
+        path(
+            f"{BASE_API_URL}/reservations/event/<int:event_id>",
+            get_event_reservations,
+            name="event_reservations",
+        ),
+        path(
+            f"{BASE_API_URL}/reservations/<int:reservation_id>/check-in",
+            check_in,
+            name="reservation_check_in",
         ),
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
