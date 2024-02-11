@@ -1,5 +1,5 @@
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -15,7 +15,7 @@ class EventViewSet(GenericViewSet):
         methods=["POST"],
         detail=False,
         serializer_class=CreateEventSerializer,
-        url_path="create-event",
+        url_path="create",
     )
     def create_event(self, request, *args, **kwargs):
         create_event_serializer = self.get_serializer(data=request.data)
@@ -41,3 +41,28 @@ class EventViewSet(GenericViewSet):
         events = Event.objects.all()
         serializer = EventSerializer(events, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def publish_event(request, event_id) -> Response:
+    """
+    Publish an event
+    """
+    try:
+        event = Event.objects.get(id=event_id)
+    except:
+        event = None
+
+    if not event:
+        return Response(
+            {"error": "Event not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    event.published = True
+    event.save()
+    return Response(
+        {"message": "Event published successfully"},
+        status=status.HTTP_200_OK,
+    )
