@@ -69,12 +69,12 @@ urlpatterns = (
         # ),
         path(f"{BASE_API_URL}/events/", include(event_router.urls), name="events"),
         path(
-            f"{BASE_API_URL}/events/<int:event_id>/publish",
+            f"{BASE_API_URL}/events/<str:event_id>/publish",
             publish_event,
             name="publish_event",
         ),
         path(
-            f"{BASE_API_URL}/events/<int:event_id>/reservations",
+            f"{BASE_API_URL}/events/<str:event_id>/reservations",
             get_event_reservations,
             name="event_reservations",
         ),
@@ -89,7 +89,7 @@ urlpatterns = (
             name="reservations",
         ),
         path(
-            f"{BASE_API_URL}/reservations/<int:reservation_id>/check-in",
+            f"{BASE_API_URL}/reservations/<str:reservation_id>/check-in",
             check_in,
             name="reservation_check_in",
         ),

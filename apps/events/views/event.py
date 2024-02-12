@@ -46,7 +46,7 @@ class EventViewSet(GenericViewSet):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def publish_event(request, event_id) -> Response:
+def publish_event(request, event_id: str) -> Response:
     """
     Publish an event
     """
@@ -74,7 +74,7 @@ def publish_event(request, event_id) -> Response:
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def get_event_reservations(request, event_id) -> Response:
+def get_event_reservations(request, event_id: str) -> Response:
     """
     Get all reservations for a specific event.
     """

@@ -37,7 +37,7 @@ class ReservationViewSet(GenericViewSet):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def check_in(request, reservation_id) -> Response:
+def check_in(request, reservation_id: str) -> Response:
     """
     Check in a reservation.
     """
