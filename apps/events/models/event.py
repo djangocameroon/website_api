@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.events.models.constants import (
     COMMUNITIES,
@@ -10,8 +11,6 @@ from apps.events.models.constants import (
 )
 from apps.events.models.speaker import Speaker
 from apps.events.models.base import BaseModel
-from django.utils.translation import gettext_lazy as _
-
 from utils.main import generate_uuid
 
 
