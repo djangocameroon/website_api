@@ -1,2 +1,0 @@
-from .event_serializer import EventSerializer, CreateEventSerializer
-from .speaker_serializer import SpeakerSerializer

@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 
 from apps.events.models.reservation import Reservation
-from apps.events.serializers.reservation_serializer import ReservationInSerializer
+from apps.events.serializers.reservation_serializer import ReservationSerializer
 
 
 class ReservationViewSet(GenericViewSet):
@@ -14,7 +14,7 @@ class ReservationViewSet(GenericViewSet):
     @action(
         methods=["POST"],
         detail=False,
-        serializer_class=ReservationInSerializer,
+        serializer_class=ReservationSerializer,
         url_path="create",
     )
     def create_reservation(self, request, *args, **kwargs):

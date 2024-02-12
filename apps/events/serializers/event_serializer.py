@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from apps.events.models import Event
+from apps.events.models.event import Event
 from apps.events.models.speaker import Speaker
-from .speaker_serializer import SpeakerSerializer
+from apps.events.serializers.speaker_serializer import SpeakerSerializer
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -20,15 +20,4 @@ class EventSerializer(serializers.ModelSerializer):
 class CreateEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = (
-            "category",
-            "for_community",
-            "title",
-            "description",
-            "location",
-            "hour",
-            "date",
-            "type",
-            "speaker",
-            "tags",
-        )
+        exclude = ("published",)
