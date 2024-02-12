@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 
 from apps.events.models.event import Event
-from apps.events.serializers import CreateEventSerializer, EventSerializer
+from apps.events.serializers.event_serializer import CreateEventSerializer, EventSerializer
 from apps.events.serializers.reservation_serializer import ReservationSerializer
 
 
