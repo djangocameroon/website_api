@@ -63,6 +63,9 @@ def publish_event(request, event_id) -> Response:
 
     event.published = True
     event.save()
+
+    # TODO: Implement the send_email function to send an email to the
+    # community members
     return Response(
         {"message": "Event published successfully"},
         status=status.HTTP_200_OK,
