@@ -10,6 +10,9 @@ from apps.events.models.constants import (
 )
 from apps.events.models.speaker import Speaker
 from apps.events.models.base import BaseModel
+from django.utils.translation import gettext_lazy as _
+
+from utils.main import generate_uuid
 
 
 class Event(BaseModel):
@@ -38,6 +41,13 @@ class Event(BaseModel):
 
 
 class EventTag(models.Model):
+    id = models.UUIDField(
+        _("id"),
+        primary_key=True,
+        default=generate_uuid(),
+        editable=False,
+        help_text=_("Unique identifier for this object."),
+    )
     tag = models.CharField(max_length=50)
     color = models.CharField(
         max_length=10
