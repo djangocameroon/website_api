@@ -10,7 +10,7 @@ from rest_framework.routers import SimpleRouter
 from utils.main import load_documentation
 from apps.events.views import (
     EventViewSet,
-    SpeakerViewSet, 
+    SpeakerViewSet,
     ReservationViewSet,
     get_event_reservations,
     check_in,
@@ -74,6 +74,11 @@ urlpatterns = (
             name="publish_event",
         ),
         path(
+            f"{BASE_API_URL}/events/<int:event_id>/reservations",
+            get_event_reservations,
+            name="event_reservations",
+        ),
+        path(
             f"{BASE_API_URL}/speakers/",
             include(speaker_router.urls),
             name="speakers",
@@ -82,11 +87,6 @@ urlpatterns = (
             f"{BASE_API_URL}/reservations/",
             include(reservation_router.urls),
             name="reservations",
-        ),
-        path(
-            f"{BASE_API_URL}/reservations/event/<int:event_id>",
-            get_event_reservations,
-            name="event_reservations",
         ),
         path(
             f"{BASE_API_URL}/reservations/<int:reservation_id>/check-in",

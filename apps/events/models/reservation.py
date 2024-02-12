@@ -4,7 +4,9 @@ from .event import Event
 
 
 class Reservation(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="reservations"
+    )
     # Waiting for a User model
     # user = models.ForeignKey("User", on_delete=models.CASCADE)
     email = models.EmailField()

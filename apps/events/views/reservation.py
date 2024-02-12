@@ -4,12 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 
-from apps.events.models.event import Event
 from apps.events.models.reservation import Reservation
-from apps.events.serializers.reservation_serializer import (
-    ReservationInSerializer,
-    ReservationSerializer,
-)
+from apps.events.serializers.reservation_serializer import ReservationInSerializer
 
 
 class ReservationViewSet(GenericViewSet):
@@ -37,30 +33,6 @@ class ReservationViewSet(GenericViewSet):
             )
 
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def get_event_reservations(request, event_id) -> Response:
-    """
-    Get all reservations for a specific event.
-    """
-    try:
-        existing_event = Event.objects.get(id=event_id)
-    except:
-        existing_event = None
-
-    if not existing_event:
-        return Response(
-            {"error": "Event not found"},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-
-    reservations = Reservation.objects.filter(event=existing_event)
-    return Response(
-        ReservationSerializer(reservations, many=True).data,
-        status=status.HTTP_200_OK,
-    )
-
-
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def check_in(request, reservation_id) -> Response:
@@ -85,3 +57,13 @@ def check_in(request, reservation_id) -> Response:
         {"message": "Reservation checked in successfully"},
         status=status.HTTP_200_OK,
     )
+
+
+# TODO: Maybe Implement the get_reservations_stats function
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_reservations_statistics(request) -> Response:
+    """
+    Get reservations statistics.
+    """
+    pass
