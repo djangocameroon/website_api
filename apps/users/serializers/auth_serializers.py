@@ -47,3 +47,18 @@ class LoginResponseSerializer(serializers.Serializer):
 
 class PassWordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+
+class PasswordResetConfirmationSerializer(serializers.Serializer):
+    otp = serializers.CharField()
+    password = serializers.CharField(
+        max_length=128,
+        min_length=8
+    )
+    password_confirmation = serializers.CharField()
+
+    def validate_password_confirmation(self, value):
+        password = self.get_initial().get('password')
+        if password != value:
+            raise serializers.ValidationError(_('Passwords do not match'))
+        return value

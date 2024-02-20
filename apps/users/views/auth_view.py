@@ -8,12 +8,14 @@ from django.utils.timezone import now, timedelta
 from drf_yasg.utils import swagger_auto_schema
 from mixins import APIResponseMixin
 from oauth2_provider.models import AccessToken, RefreshToken, Application
+from apps.users.models import OtpCode
 import secrets
+from django.contrib.contenttypes.models import ContentType
 from apps.users.serializers import (
     UserRegistrationSerializer, SuccessResponseSerializer, 
     ErrorResponseSerializer, LoginSerializer,
     LoginResponseSerializer, UserSerializer,
-    PassWordResetRequestSerializer
+    PassWordResetRequestSerializer, PasswordResetConfirmationSerializer
 )
 
 User = get_user_model()
@@ -136,4 +138,56 @@ class PasswordResetRequestView(APIResponseMixin, APIView):
         user.send_email_otp()
 
         return self.success(_("An OTP has been sent to your email for verification"), status.HTTP_200_OK)
+    
+
+class PasswordResetConfirmationView(APIResponseMixin, APIView):
+    serializer_class = PasswordResetConfirmationSerializer
+    permission_classes = [ permissions.AllowAny ]
+    
+    @swagger_auto_schema(
+        operation_id="Reset Password Confirmation",
+        operation_summary="Reset Password Confirmation",
+        request_body=PasswordResetConfirmationSerializer,
+        tags=['Auth'],
+        security=[],
+        responses={
+            200: SuccessResponseSerializer,
+            400: ErrorResponseSerializer,
+        },
+    ) 
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        
+        otp = data['otp']
+        password = data['password']
+        
+        user_content_type = ContentType.objects.get_for_model(User)
+        otp_model = OtpCode.objects.filter(
+            otp_code=otp,
+            content_type=user_content_type
+        ).first()
+        if otp_model is None:
+            return self.error(_("Invalid OTP"), status.HTTP_400_BAD_REQUEST)
+        
+        # Check if it has expired and delete if that its the case
+        if otp_model.has_expired():
+            otp_model.delete()
+            return self.error(_("OTP has expired. Make a new request"), status.HTTP_400_BAD_REQUEST)
+        
+        user = otp_model.content_object
+        
+        if user is None:
+            return self.error(_("Invalid OTP"), status.HTTP_400_BAD_REQUEST)
+        
+        user.set_password(password)
+        user.save()
+
+        otp_model.delete()
+
+        # delete all the user's access tokens
+        AccessToken.objects.filter(user=user).delete()
+        
+        return self.success(_("Password reset successfully"), status.HTTP_200_OK)
     

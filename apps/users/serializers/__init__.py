@@ -1,2 +1,2 @@
-from .auth_serializers import UserRegistrationSerializer, LoginSerializer, LoginResponseSerializer, PassWordResetRequestSerializer
+from .auth_serializers import UserRegistrationSerializer, LoginSerializer, LoginResponseSerializer, PassWordResetRequestSerializer, PasswordResetConfirmationSerializer
 from .general_serializers import SuccessResponseSerializer, ErrorResponseSerializer, UserSerializer
