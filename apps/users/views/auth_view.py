@@ -12,7 +12,8 @@ import secrets
 from apps.users.serializers import (
     UserRegistrationSerializer, SuccessResponseSerializer, 
     ErrorResponseSerializer, LoginSerializer,
-    LoginResponseSerializer, UserSerializer
+    LoginResponseSerializer, UserSerializer,
+    PassWordResetRequestSerializer
 )
 
 User = get_user_model()
@@ -79,7 +80,7 @@ class LoginView(APIResponseMixin, APIView):
             return self.error(_("Invalid credentials"), status.HTTP_400_BAD_REQUEST)
       
 
-        application = Application.objects.get(name="Default")
+        application, created = Application.objects.get_or_create(name="Default")
         expiration_time = now() + timedelta(days=1)
 
         access_token = AccessToken.objects.create(
@@ -104,3 +105,35 @@ class LoginView(APIResponseMixin, APIView):
         }
         
         return self.success(_("Login successfull"), status.HTTP_200_OK, response_data)
+    
+
+class PasswordResetRequestView(APIResponseMixin, APIView):
+    serializer_class = PassWordResetRequestSerializer
+    permission_classes = [ permissions.AllowAny ]
+    
+    @swagger_auto_schema(
+        operation_id="Reset Password",
+        operation_summary="Reset Password",
+        request_body=PassWordResetRequestSerializer,
+        tags=['Auth'],
+        security=[],
+        responses={
+            200: SuccessResponseSerializer,
+            400: ErrorResponseSerializer,
+        },
+    ) 
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email']
+
+        # Check if the user with the provided email exists or not
+        user = User.objects.filter(email=email).first()
+        if user is None:
+            return self.error(_("User with the provided email does not exist"), status.HTTP_400_BAD_REQUEST)
+        
+        user.send_email_otp()
+
+        return self.success(_("An OTP has been sent to your email for verification"), status.HTTP_200_OK)
+    

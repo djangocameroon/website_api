@@ -28,6 +28,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ['email', 'username', 'password', 'password_confirmation']
 
     def create(self, validated_data):
+        # Pop out password_confirmation
+        validated_data.pop('password_confirmation')
         return User.objects.create_user(**validated_data)
     
 
@@ -41,3 +43,7 @@ class LoginResponseSerializer(serializers.Serializer):
     refresh_token = serializers.CharField()
     expires_in = serializers.SerializerMethodField()
     user = UserSerializer()
+
+
+class PassWordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
