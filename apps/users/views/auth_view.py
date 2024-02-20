@@ -191,3 +191,20 @@ class PasswordResetConfirmationView(APIResponseMixin, APIView):
         
         return self.success(_("Password reset successfully"), status.HTTP_200_OK)
     
+class LogoutView(APIResponseMixin, APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_id="Logout",
+        operation_summary="Logout",
+        tags=['Auth'],
+        responses={
+            200: SuccessResponseSerializer,
+            400: ErrorResponseSerializer,
+        },
+    ) 
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        AccessToken.objects.filter(user=user).delete()
+        return self.success(_("Logout successfull"), status.HTTP_200_OK)
+    
