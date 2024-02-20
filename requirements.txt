@@ -1,9 +1,11 @@
 asgiref==3.7.2
 certifi==2023.11.17
 cffi==1.16.0
+cfgv==3.4.0
 charset-normalizer==3.3.2
 cryptography==41.0.7
 Deprecated==1.2.14
+distlib==0.3.8
 Django==5.0.1
 django-cors-headers==4.3.1
 django-dotenv==1.4.2
@@ -11,12 +13,16 @@ django-filter==23.5
 django-oauth-toolkit==2.3.0
 djangorestframework==3.14.0
 drf-yasg==1.21.7
+filelock==3.13.1
+identify==2.5.33
 idna==3.6
 inflection==0.5.1
 jwcrypto==1.5.1
+nodeenv==1.8.0
 oauthlib==3.2.2
 packaging==23.2
-psycopg==3.1.16
+platformdirs==4.1.0
+psycopg2-binary==2.9.9
 pycparser==2.21
 python-dotenv==1.0.0
 pytz==2023.3.post1
@@ -27,4 +33,5 @@ typing_extensions==4.9.0
 tzdata==2023.4
 uritemplate==4.1.1
 urllib3==2.1.0
+virtualenv==20.25.0
 wrapt==1.16.0

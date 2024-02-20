@@ -3,12 +3,15 @@ from django.urls import path, re_path, include
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+from django.conf import settings
+from django.conf.urls.static import static
+from utils.main import load_documentation
 
 schema_view = get_schema_view(
     openapi.Info(
         title="Django Cameroon Website API",
         default_version="v1",
-        description="Django Cameroon Website API Documentation",
+        description=load_documentation("main.md"),
         terms_of_service="https://djangocameroon.site/",
         contact=openapi.Contact(email="support@djangocameroon.site"),
         license=openapi.License(name="BSD License"),
@@ -33,4 +36,6 @@ urlpatterns = [
 
     # Users app
     path("api/",include('apps.users.routes.api')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(
+    settings.STATIC_URL, document_root=settings.STATIC_ROOT
+)

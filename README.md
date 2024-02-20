@@ -2,13 +2,13 @@
 
 ## Installation
 1. Create and activate a virtual environment
-```sh
+```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
 2. Install dependencies  
-```sh
+```bash
 pip3 install -r requirements.txt
 ```  
 
@@ -18,7 +18,7 @@ Assuming postgresql is installed in your computer, follow what's next:
       # accessing the postgres CLI
       sudo -u postgres psql
       ```
-   - ```postgresql
+   - ```bash
      -- Create a database
      CREATE DATABASE django_website_db;
      
@@ -31,17 +31,17 @@ Assuming postgresql is installed in your computer, follow what's next:
     If postgreSQL is not installed in the computer, get to the tutorial [for Linux](https://www.cherryservers.com/blog/how-to-install-and-setup-postgresql-server-on-ubuntu-20-04) or [for Windows](https://www.microfocus.com/documentation/idol/IDOL_12_0/MediaServer/Guides/html/English/Content/Getting_Started/Configure/_TRN_Set_up_PostgreSQL.htm).
 
 4. Copy the .env.example file to .env and fill in the values in the .env file.  
-```sh
+```bash
 cp -r .env.example .env
 ```
 
 5. Apply database migrations 
-```sh
+```bash
 python3 manage.py migrate
 ```
 
 6. Run the server
-```sh
+```bash
 python3 manage.py runserver
 ```
 
