@@ -7,6 +7,7 @@ from services import MailService
 
 class User(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
+    profile_image = models.ImageField(upload_to="users", null=True, blank=True)
     otp_codes = GenericRelation('users.OtpCode')
 
     USERNAME_FIELD = 'email'

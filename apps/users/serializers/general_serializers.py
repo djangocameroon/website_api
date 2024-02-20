@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 User = get_user_model()
 
@@ -16,4 +17,4 @@ class ErrorResponseSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'first_name', 'last_name', 'last_login']
+        fields = ['id', 'email', 'username', 'profile_image', 'first_name', 'last_name', 'last_login']
