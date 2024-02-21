@@ -93,8 +93,7 @@ EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = os.getenv("EMAIL_PORT")
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", False)
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 # Password validation
@@ -140,3 +139,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+# Custom user model
+AUTH_USER_MODEL = "users.User"
