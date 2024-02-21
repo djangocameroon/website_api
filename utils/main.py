@@ -22,3 +22,8 @@ def load_documentation(filename) -> str:
     """
     with open(os.path.join(documentation_path, filename), "r") as doc:
         return doc.read()
+import random
+
+def generate_otp():
+    otp = random.randint(100000, 999999)
+    return otp

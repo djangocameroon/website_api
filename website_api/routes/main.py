@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import include, path, re_path
+from django.urls import path, re_path, include
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -32,68 +32,20 @@ schema_view = get_schema_view(
 
 BASE_API_URL = "api/v1"
 
-event_router = SimpleRouter(trailing_slash=False)
-event_router.register("", EventViewSet, basename="events")
+urlpatterns = [
+    re_path(r"^$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    path(
+        "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
+    ),
+    path(
+        "swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    path("admin/", admin.site.urls),
 
-speaker_router = SimpleRouter(trailing_slash=False)
-speaker_router.register("", SpeakerViewSet, basename="speakers")
-
-reservation_router = SimpleRouter(trailing_slash=False)
-reservation_router.register("", ReservationViewSet, basename="reservations")
-
-urlpatterns = (
-    [
-        re_path(
-            r"^$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
-        ),
-        path(
-            "swagger<format>/",
-            schema_view.without_ui(cache_timeout=0),
-            name="schema-json",
-        ),
-        path(
-            "swagger/",
-            schema_view.with_ui("swagger", cache_timeout=0),
-            name="schema-swagger-ui",
-        ),
-        path("admin/", admin.site.urls),
-        # path(
-        #     f"{BASE_API_URL}/users/",
-        #     include(("apps.users.routes", "apps.users")),
-        #     name="users",
-        # ),
-        # path(
-        #     f"{BASE_API_URL}/events/",
-        #     include(("apps.events.routes", "apps.events")),
-        #     name="events",
-        # ),
-        path(f"{BASE_API_URL}/events/", include(event_router.urls), name="events"),
-        path(
-            f"{BASE_API_URL}/events/<str:event_id>/publish",
-            publish_event,
-            name="publish_event",
-        ),
-        path(
-            f"{BASE_API_URL}/events/<str:event_id>/reservations",
-            get_event_reservations,
-            name="event_reservations",
-        ),
-        path(
-            f"{BASE_API_URL}/speakers/",
-            include(speaker_router.urls),
-            name="speakers",
-        ),
-        path(
-            f"{BASE_API_URL}/reservations/",
-            include(reservation_router.urls),
-            name="reservations",
-        ),
-        path(
-            f"{BASE_API_URL}/reservations/<str:reservation_id>/check-in",
-            check_in,
-            name="reservation_check_in",
-        ),
-    ]
-    + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Users app
+    path("api/",include('apps.users.routes.api')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(
+    settings.STATIC_URL, document_root=settings.STATIC_ROOT
 )
