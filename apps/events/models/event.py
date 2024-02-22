@@ -11,6 +11,7 @@ from apps.events.models.constants import (
 )
 from apps.events.models.speaker import Speaker
 from apps.events.models.base import BaseModel
+from apps.users.models.user import User
 from utils.main import generate_uuid
 
 
@@ -31,8 +32,7 @@ class Event(BaseModel):
     )
     speaker = models.ForeignKey(Speaker, on_delete=models.CASCADE)
     tags = models.ManyToManyField("EventTag", related_name="events", default=None)
-    # TODO: Add field for displying who created the event
-    # created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     published = models.BooleanField(default=False)
 
     def __str__(self):

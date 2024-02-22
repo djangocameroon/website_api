@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.events.models.event import Event
 from apps.events.models.base import BaseModel
+from apps.users.models.user import User
 
 
 class Reservation(BaseModel):
@@ -12,9 +13,7 @@ class Reservation(BaseModel):
         related_name="reservations",
         verbose_name=_("event"),
     )
-    # Waiting for a User model
-    # user = models.ForeignKey("User", on_delete=models.CASCADE)
-    email = models.EmailField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
     sex = models.CharField(
         max_length=10,
@@ -24,4 +23,4 @@ class Reservation(BaseModel):
     check_in = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.email} -> {self.for_event.title}"
+        return f"{self.user.email} -> {self.for_event.title}"
