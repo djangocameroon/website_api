@@ -42,7 +42,7 @@ urlpatterns = (
         # Users app
         path(f"{BASE_API_URL}/", include("apps.users.routes.api")),
         # Events app
-        path(f"{BASE_API_URL}/", include("apps.events.routes.main")),
+        path(f"{BASE_API_URL}/", include("apps.events.routes.api")),
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
