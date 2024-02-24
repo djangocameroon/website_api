@@ -1,3 +1,4 @@
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -5,25 +6,54 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 
 from apps.events.models.event import Event
-from apps.events.serializers.event_serializer import CreateEventSerializer, EventSerializer
+from apps.events.serializers.event_serializer import (
+    CreateEventInputSerializer,
+    CreateEventSerializer,
+    EventSerializer,
+)
 from apps.events.serializers.reservation_serializer import ReservationSerializer
+from apps.users.user_permissions import IsOrganizer
+from utils.user_utils import get_connected_user
 
 
 class EventViewSet(GenericViewSet):
-    permission_classes = [AllowAny]
 
     @action(
         methods=["POST"],
         detail=False,
-        serializer_class=CreateEventSerializer,
+        serializer_class=CreateEventInputSerializer,
         url_path="create",
+        permission_classes=[IsOrganizer],
+    )
+    @swagger_auto_schema(
+        operation_summary="Create an event",
+        responses={201: EventSerializer()},
+        security=[{"Bearer": []}],
+        tags=["Events"],
     )
     def create_event(self, request, *args, **kwargs):
         create_event_serializer = self.get_serializer(data=request.data)
+
+        # Retrieve the connected user (user making the request)
+        connected_user = get_connected_user(request)
+        if not connected_user:
+            return Response(
+                {"error": "User not connected"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Adding the connected user to the request data
+        request.data["created_by"] = connected_user.id
+
+        # Check if the input data is valid
         if create_event_serializer.is_valid():
+            # Check if the input data is valid with the new value added
+            create_event_serializer = CreateEventSerializer(data=request.data)
+            create_event_serializer.is_valid(raise_exception=True)
+            
             create_event_serializer.save()
             return Response(
-                create_event_serializer.data,
+                EventSerializer(create_event_serializer.instance).data,
                 status=status.HTTP_201_CREATED,
             )
 
@@ -37,6 +67,13 @@ class EventViewSet(GenericViewSet):
         detail=False,
         url_path="list",
         serializer_class=EventSerializer,
+        permission_classes=[AllowAny],
+    )
+    @swagger_auto_schema(
+        operation_summary="Get all events",
+        responses={200: EventSerializer(many=True)},
+        security=[],
+        tags=["Events"],
     )
     def get_events(self, request, *args, **kwargs):
         events = Event.objects.all()
@@ -44,8 +81,14 @@ class EventViewSet(GenericViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@swagger_auto_schema(
+    method="POST",
+    operation_summary="Publish an event",
+    security=[{"Bearer": []}],
+    tags=["Events"],
+)
 @api_view(["POST"])
-@permission_classes([AllowAny])
+@permission_classes([IsOrganizer])
 def publish_event(request, event_id: str) -> Response:
     """
     Publish an event
@@ -72,9 +115,16 @@ def publish_event(request, event_id: str) -> Response:
     )
 
 
+@swagger_auto_schema(
+    method="GET",
+    operation_summary="Get all reservations for a specific event",
+    responses={200: ReservationSerializer(many=True)},
+    security=[{"Bearer": []}],
+    tags=["Events"],
+)
 @api_view(["GET"])
-@permission_classes([AllowAny])
-def get_event_reservations(request, event_id: str) -> Response:
+@permission_classes([IsOrganizer])
+def retrieve_event_reservations(request, event_id: str) -> Response:
     """
     Get all reservations for a specific event.
     """

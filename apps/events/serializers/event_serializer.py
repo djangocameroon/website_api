@@ -17,7 +17,23 @@ class EventSerializer(serializers.ModelSerializer):
         return SpeakerSerializer(speaker).data
 
 
+class CreateEventInputSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating an event.
+    This serializer is used to validate the input data.
+    """
+
+    class Meta:
+        model = Event
+        exclude = ("published", "created_by")
+
+
 class CreateEventSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating an event.
+    This serializer is used to create the event.
+    """
+
     class Meta:
         model = Event
         exclude = ("published",)

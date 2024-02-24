@@ -30,9 +30,9 @@ class Event(BaseModel):
     type = models.CharField(
         max_length=50, choices=EVENT_TYPES, default=EventType.IN_PERSON
     )
-    speaker = models.ForeignKey(Speaker, on_delete=models.CASCADE)
+    speaker = models.ForeignKey(Speaker, on_delete=models.SET_NULL, null=True)
     tags = models.ManyToManyField("EventTag", related_name="events", default=None)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, to_field="id")
     published = models.BooleanField(default=False)
 
     def __str__(self):
