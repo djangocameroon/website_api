@@ -14,12 +14,6 @@ class Reservation(BaseModel):
         verbose_name=_("event"),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=100)
-    sex = models.CharField(
-        max_length=10,
-        choices=(("Male", "Male"), ("Female", "Female")),
-        default="Male",
-    )
     check_in = models.BooleanField(default=False)
 
     def __str__(self):

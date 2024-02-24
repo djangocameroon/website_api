@@ -9,6 +9,12 @@ class User(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
     profile_image = models.ImageField(upload_to="users", null=True, blank=True)
     otp_codes = GenericRelation('users.OtpCode')
+    
+    gender = models.CharField(
+        max_length=10,
+        choices=(("Male", "Male"), ("Female", "Female")),
+        default="Male",
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
