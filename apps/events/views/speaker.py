@@ -5,7 +5,10 @@ from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 
 from apps.events.models.speaker import Speaker
-from apps.events.serializers.speaker_serializer import SpeakerSerializer
+from apps.events.serializers.speaker_serializer import (
+    SpeakerSerializer,
+    SpeakerWithLastUpdatedBySerializer,
+)
 from apps.users.user_permissions import IsOrganizer
 from utils.user_utils import get_connected_user
 
@@ -32,7 +35,15 @@ class SpeakerViewSet(ModelViewSet):
     )
     def create(self, request, *args, **kwargs):
         self._set_connected_user(request)
-        return super().create(request, *args, **kwargs)
+
+        # Set who making the request as the last_updated_by
+        serializer = SpeakerWithLastUpdatedBySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     @swagger_auto_schema(
         tags=["Speakers"],
@@ -63,7 +74,22 @@ class SpeakerViewSet(ModelViewSet):
     )
     def update(self, request, *args, **kwargs):
         self._set_connected_user(request)
-        return super().update(request, *args, **kwargs)
+
+        # Set who making the request as the last_updated_by
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = SpeakerWithLastUpdatedBySerializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, "_prefetched_objects_cache", None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         tags=["Speakers"],
@@ -74,7 +100,9 @@ class SpeakerViewSet(ModelViewSet):
     )
     def partial_update(self, request, *args, **kwargs):
         self._set_connected_user(request)
-        return super().partial_update(request, *args, **kwargs)
+        
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
 
     @swagger_auto_schema(
         tags=["Speakers"],

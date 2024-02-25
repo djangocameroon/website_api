@@ -50,13 +50,13 @@ class ReservationViewSet(GenericViewSet):
             serializer = CreateReservationSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
-            serializer.save()
+            reservation = Reservation.objects.create(**serializer.validated_data)
 
             # TODO: Implement the send_email function to send an email to the user
             # when the reservation is created.
 
             return Response(
-                ReservationSerializer(serializer.instance).data,
+                ReservationSerializer(reservation).data,
                 status=status.HTTP_201_CREATED,
             )
 

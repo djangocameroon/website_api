@@ -8,3 +8,11 @@ class SpeakerSerializer(serializers.ModelSerializer):
         model = Speaker
         fields = "__all__"
         read_only_fields = ("id", "last_updated_by")
+
+
+class SpeakerWithLastUpdatedBySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Speaker
+        fields = "__all__"
+        read_only_fields = ("id",)
