@@ -1,4 +1,3 @@
-from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -11,54 +10,6 @@ from apps.users.user_permissions import IsOrganizer
 from utils.user_utils import get_connected_user
 
 
-@method_decorator(
-    name="create",
-    decorator=swagger_auto_schema(
-        tags=["Speakers"],
-        security=[{"Bearer": []}],
-        operation_summary="Create a new speaker",
-    ),
-)
-@method_decorator(
-    name="list",
-    decorator=swagger_auto_schema(
-        tags=["Speakers"],
-        security=[],
-        operation_summary="List all speakers",
-    ),
-)
-@method_decorator(
-    name="retrieve",
-    decorator=swagger_auto_schema(
-        tags=["Speakers"],
-        security=[],
-        operation_summary="Get a speaker",
-    ),
-)
-@method_decorator(
-    name="update",
-    decorator=swagger_auto_schema(
-        tags=["Speakers"],
-        security=[{"Bearer": []}],
-        operation_summary="Update a speaker",
-    ),
-)
-@method_decorator(
-    name="partial_update",
-    decorator=swagger_auto_schema(
-        tags=["Speakers"],
-        security=[{"Bearer": []}],
-        operation_summary="Update a speaker",
-    ),
-)
-@method_decorator(
-    name="destroy",
-    decorator=swagger_auto_schema(
-        tags=["Speakers"],
-        security=[{"Bearer": []}],
-        operation_summary="Delete a speaker",
-    ),
-)
 class SpeakerViewSet(ModelViewSet):
     queryset = Speaker.objects.all()
     serializer_class = SpeakerSerializer
@@ -72,17 +23,68 @@ class SpeakerViewSet(ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
+    @swagger_auto_schema(
+        tags=["Speakers"],
+        security=[{"Bearer": []}],
+        operation_summary="Create a new speaker",
+        operation_id="create_speaker",
+        operation_description="Create a new speaker.",
+    )
     def create(self, request, *args, **kwargs):
         self._set_connected_user(request)
         return super().create(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        tags=["Speakers"],
+        security=[],
+        operation_summary="List all speakers",
+        operation_id="list_speakers",
+        operation_description="List all speakers.",
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        tags=["Speakers"],
+        security=[],
+        operation_summary="Get a speaker",
+        operation_id="get_speaker",
+        operation_description="Get a speaker.",
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        tags=["Speakers"],
+        security=[{"Bearer": []}],
+        operation_summary="Update a speaker",
+        operation_id="update_speaker",
+        operation_description="Update a speaker.",
+    )
     def update(self, request, *args, **kwargs):
         self._set_connected_user(request)
         return super().update(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        tags=["Speakers"],
+        security=[{"Bearer": []}],
+        operation_summary="Update a speaker",
+        operation_id="partial_update_speaker",
+        operation_description="Update a speaker.",
+    )
     def partial_update(self, request, *args, **kwargs):
         self._set_connected_user(request)
         return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        tags=["Speakers"],
+        security=[{"Bearer": []}],
+        operation_summary="Delete a speaker",
+        operation_id="delete_speaker",
+        operation_description="Delete a speaker.",
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
     def _set_connected_user(self, request):
         # Retrieve the connected user (user making the request)

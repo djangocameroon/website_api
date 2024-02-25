@@ -27,6 +27,8 @@ class EventViewSet(GenericViewSet):
     )
     @swagger_auto_schema(
         operation_summary="Create an event",
+        operation_id="create_event",
+        operation_description="Create an event.",
         responses={201: EventSerializer()},
         security=[{"Bearer": []}],
         tags=["Events"],
@@ -71,6 +73,8 @@ class EventViewSet(GenericViewSet):
     )
     @swagger_auto_schema(
         operation_summary="Get all events",
+        operation_id="get_events",
+        operation_description="Get all events.",
         responses={200: EventSerializer(many=True)},
         security=[],
         tags=["Events"],
@@ -84,6 +88,8 @@ class EventViewSet(GenericViewSet):
 @swagger_auto_schema(
     method="POST",
     operation_summary="Publish an event",
+    operation_id="publish_event",
+    operation_description="Publish an event.",
     security=[{"Bearer": []}],
     tags=["Events"],
 )
@@ -118,6 +124,8 @@ def publish_event(request, event_id: str) -> Response:
 @swagger_auto_schema(
     method="GET",
     operation_summary="Get all reservations for a specific event",
+    operation_id="get_event_reservations",
+    operation_description="Get all reservations for a specific event.",
     responses={200: ReservationSerializer(many=True)},
     security=[{"Bearer": []}],
     tags=["Events"],

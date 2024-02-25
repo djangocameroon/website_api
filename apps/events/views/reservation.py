@@ -25,6 +25,8 @@ class ReservationViewSet(GenericViewSet):
     )
     @swagger_auto_schema(
         operation_summary="Create a reservation for an event.",
+        operation_id="create_reservation",
+        operation_description="Create a reservation for an event.",
         security=[{"Bearer": []}],
         tags=["Reservations"],
         responses={201: ReservationSerializer()},
@@ -65,6 +67,8 @@ class ReservationViewSet(GenericViewSet):
 @swagger_auto_schema(
     method="POST",
     operation_summary="Check in a reservation.",
+    operation_id="check_in_reservation",
+    operation_description="Check in a reservation.",
     security=[{"Bearer": []}],
     tags=["Reservations"],
 )
