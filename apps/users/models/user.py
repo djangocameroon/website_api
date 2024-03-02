@@ -5,12 +5,23 @@ from django.utils.translation import gettext_lazy as _
 from apps.users.user_manager import UserManager
 from services import MailService
 
-class User(AbstractUser):
-    email = models.EmailField(_('email address'), unique=True)
-    profile_image = models.ImageField(upload_to="users", null=True, blank=True)
-    otp_codes = GenericRelation('users.OtpCode')
 
-    USERNAME_FIELD = 'email'
+class User(AbstractUser):
+    email = models.EmailField(_("email address"), unique=True)
+    profile_image = models.ImageField(upload_to="users", null=True, blank=True)
+    otp_codes = GenericRelation("users.OtpCode")
+
+    gender = models.CharField(
+        max_length=50,
+        choices=(
+            ("Male", "Male"),
+            ("Female", "Female"),
+            ("Prefer not to say", "Prefer not to say"),
+        ),
+        default="Male",
+    )
+
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
