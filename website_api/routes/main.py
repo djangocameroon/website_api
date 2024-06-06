@@ -22,6 +22,11 @@ schema_view = get_schema_view(
 )
 
 BASE_API_URL = "api/v1"
+blog_urls = [
+   path('blog/', include('blog.urls')),
+
+
+]
 
 urlpatterns = (
     [
@@ -43,6 +48,11 @@ urlpatterns = (
         path(f"{BASE_API_URL}/", include("apps.users.routes.api")),
         # Events app
         path(f"{BASE_API_URL}/", include("apps.events.routes.api")),
+         # Blog app
+        *blog_urls,
+        
+
+        
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

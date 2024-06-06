@@ -8,4 +8,5 @@ THIRD_PARTY_APPS = [
 CUSTOM_APPS = [
     "apps.users",
     "apps.events",
+    "blog",
 ]
