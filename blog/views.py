@@ -9,10 +9,13 @@ from .tasks import handle_image_upload
 from django.http import HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
 class PostList(generics.ListCreateAPIView):
     queryset = Blog.objects.all()
-    serializer_class = BlogSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return BlogCreateUpdateSerializer
+        return BlogSerializer
 
     def get_permissions(self):
         if self.request.method == 'POST':
@@ -36,7 +39,11 @@ class PostList(generics.ListCreateAPIView):
 
 class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Blog.objects.all()
-    serializer_class = BlogSerializer
+
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            return BlogCreateUpdateSerializer
+        return BlogSerializer
 
     @swagger_auto_schema(
         operation_description="Retrieve a blog post",
