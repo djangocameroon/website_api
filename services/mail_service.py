@@ -1,9 +1,12 @@
-from django.core.mail import EmailMessage
-from django.conf import settings
-from django.template.loader import render_to_string
-from utils import generate_otp
 from datetime import timedelta
+
+from django.conf import settings
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 from django.utils.timezone import now
+
+from utils import generate_otp
+
 
 class MailService:
     def __init__(self, from_email=None):
@@ -15,7 +18,6 @@ class MailService:
 
     def send_mail(self, subject, message, to, attashment=None, context=None):
         self.mail.subject = subject
-        # Check if the message is a template
         if message.endswith('.html'):
             self.mail.body = render_to_string(message, context=context)
             self.mail.content_subtype = 'html'
@@ -41,4 +43,3 @@ class MailService:
             return False
         otp.delete()
         return True
-    

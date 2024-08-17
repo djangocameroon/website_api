@@ -1,24 +1,15 @@
 import os
-from pathlib import Path
 
 from dotenv import load_dotenv
 
 from .apps import CUSTOM_APPS, THIRD_PARTY_APPS
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Load environment variables from .env file
-# if not load_dotenv(os.path.join(BASE_DIR, ".env")):
-#     print("No .env file found")
-#     exit()
 load_dotenv(os.path.join(BASE_DIR, ".env"))
-# Check if environment variables are set
-# if not os.getenv("SECRET_KEY"):
-#     exit()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-
+ENVIRONMENT = os.getenv("ENVIRONMENT")
 DEBUG = os.getenv("DEBUG", False)
 
 ALLOWED_HOSTS = (os.environ.get("ALLOWED_HOSTS", "*")).split(",")
@@ -26,8 +17,6 @@ ALLOWED_HOSTS = (os.environ.get("ALLOWED_HOSTS", "*")).split(",")
 CORS_ALLOWED_ORIGINS = (
     os.environ.get("CORS_ALLOWED_ORIGINS", "https://127.0.0.1:3000")
 ).split(",")
-
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -119,9 +108,20 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
+LANGUAGES = [
+    ('en', 'English'),
+    ('fr', 'French'),
+    ('pcm', 'Pidgin'),
+]
+LOCALE_PATHS = [
+    os.path.abspath(os.path.join(BASE_DIR, "locale")),
+]
+
 TIME_ZONE = "Africa/Douala"
 
 USE_I18N = True
+
+USE_L10N = True
 
 USE_TZ = True
 

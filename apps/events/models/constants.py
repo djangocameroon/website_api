@@ -3,14 +3,18 @@ from typing import Tuple
 
 
 class EventCategory(str, Enum):
-    """Django Cameroon Event Categories"""
+    """
+    Django Cameroon Event Categories
+    """
 
     WORKSHOPS = "Workshops"
     TALKS = "Talks"
 
 
 class EventType(str, Enum):
-    """Django Cameroon Event Types"""
+    """
+    Django Cameroon Event Types
+    """
 
     ONLINE = "Online"
     IN_PERSON = "In-person"

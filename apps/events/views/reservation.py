@@ -1,8 +1,9 @@
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.viewsets import GenericViewSet
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.response import Response
+from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import status
+from rest_framework.decorators import action, api_view
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from apps.events.models.reservation import Reservation
 from apps.events.serializers.reservation_serializer import (
@@ -10,12 +11,13 @@ from apps.events.serializers.reservation_serializer import (
     CreateReservationSerializer,
     ReservationSerializer,
 )
-from apps.users.user_permissions import IsConnected, IsOrganizer
+from mixins.api_response_mixin import APIResponseMixin
 from utils.user_utils import get_connected_user
 
 
-class ReservationViewSet(GenericViewSet):
-    permission_classes = [IsConnected]
+class ReservationViewSet(GenericViewSet, APIResponseMixin):
+    queryset = Reservation.objects.all()
+    permission_classes = []
 
     @action(
         methods=["POST"],
@@ -23,37 +25,37 @@ class ReservationViewSet(GenericViewSet):
         serializer_class=CreateReservationInputSerializer,
         url_path="create",
     )
-    @swagger_auto_schema(
-        operation_summary="Create a reservation for an event.",
+    @extend_schema(
+        summary="Create a reservation for an event.",
         operation_id="create_reservation",
-        operation_description="Create a reservation for an event.",
-        security=[{"Bearer": []}],
+        description="Create a reservation for an event.",
         tags=["Reservations"],
-        responses={201: ReservationSerializer()},
+        responses={
+            201: OpenApiResponse(
+                response=ReservationSerializer,
+                description=_("Reservation created successfully")
+            )
+        },
     )
     def create_reservation(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
-        # Retrieve the connected user (user making the request)
         connected_user = get_connected_user(request)
         if not connected_user:
-            return Response(
-                {"error": "User not connected"}, status=status.HTTP_400_BAD_REQUEST
+            return self.error(
+                message=_("User not connected"),
+                status_code=status.HTTP_400_BAD_REQUEST,
+                errors=["User not connected"],
             )
-
-        # Adding the connected user to the request data
         request.data["user"] = connected_user.id
 
-        # Check if the input data is valid
         if serializer.is_valid():
-            # Check if the input data is valid with the new value added
             serializer = CreateReservationSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
             reservation = Reservation.objects.create(**serializer.validated_data)
 
             # TODO: Implement the send_email function to send an email to the user
-            # when the reservation is created.
 
             return Response(
                 ReservationSerializer(reservation).data,
@@ -61,48 +63,48 @@ class ReservationViewSet(GenericViewSet):
             )
 
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return self.error(
+                message=_("Validation error"),
+                status_code=status.HTTP_400_BAD_REQUEST,
+                errors=serializer.errors,
+            )
 
+    @extend_schema(
+        summary="Check in a reservation.",
+        operation_id="check_in_reservation",
+        description="Check in a reservation.",
+        tags=["Reservations"],
+        responses={
+            200: OpenApiResponse(
+                description=_("Reservation checked in successfully")
+            )
+        },
+    )
+    @api_view(["POST"])
+    def check_in(self, reservation_id: str) -> Response:
+        """
+        Check in a reservation.
+        """
+        try:
+            existing_reservation = Reservation.objects.get(id=reservation_id)
+        except Reservation.DoesNotExist:
+            return Response(
+                {"error": _("Reservation not found")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-@swagger_auto_schema(
-    method="POST",
-    operation_summary="Check in a reservation.",
-    operation_id="check_in_reservation",
-    operation_description="Check in a reservation.",
-    security=[{"Bearer": []}],
-    tags=["Reservations"],
-)
-@api_view(["POST"])
-@permission_classes([IsOrganizer])
-def check_in(request, reservation_id: str) -> Response:
-    """
-    Check in a reservation.
-    """
-    try:
-        existing_reservation = Reservation.objects.get(id=reservation_id)
-    except:
-        existing_reservation = None
+        existing_reservation.check_in = True
+        existing_reservation.save()
 
-    if not existing_reservation:
-        return Response(
-            {"error": "Reservation not found"},
-            status=status.HTTP_404_NOT_FOUND,
+        return self.success(
+            message=_("Reservation checked in successfully"),
+            status_code=status.HTTP_200_OK,
         )
 
-    existing_reservation.check_in = True
-    existing_reservation.save()
-
-    return Response(
-        {"message": "Reservation checked in successfully"},
-        status=status.HTTP_200_OK,
-    )
-
-
-# TODO: Maybe Implement the get_reservations_stats function
-@api_view(["GET"])
-@permission_classes([IsOrganizer])
-def get_reservations_statistics(request) -> Response:
-    """
-    Get reservations statistics.
-    """
-    pass
+    # TODO: Maybe Implement the get_reservations_stats function
+    @api_view(["GET"])
+    def get_reservations_statistics(request) -> Response:
+        """
+        Get reservation statistics.
+        """
+        pass

@@ -1,26 +1,33 @@
-from rest_framework.views import APIView
-from rest_framework.mixins import UpdateModelMixin
-from rest_framework import status
-from rest_framework import permissions
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from drf_yasg.utils import swagger_auto_schema
-from mixins import APIResponseMixin
+from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework import permissions
+from rest_framework import status
+from rest_framework.mixins import UpdateModelMixin
+from rest_framework.views import APIView
+
 from apps.users.serializers import UserSerializer, SuccessResponseSerializer, ErrorResponseSerializer
+from mixins import APIResponseMixin
 
 User = get_user_model()
 
-# Get user details view
+
 class UserDetails(APIResponseMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
-    @swagger_auto_schema(
+    @extend_schema(
         operation_id="Get user details",
-        operation_summary="Get user details",
+        summary="Get user details",
         tags=["User"],
         responses={
-            200: UserSerializer,
-            400: ErrorResponseSerializer,
+            200: OpenApiResponse(
+                response=UserSerializer,
+                description=_("User details retrieved successfully")
+            ),
+            400: OpenApiResponse(
+                response=ErrorResponseSerializer,
+                description=_("Bad request")
+            ),
         }
     )
     def get(self, request):
@@ -28,21 +35,28 @@ class UserDetails(APIResponseMixin, APIView):
         serializer = UserSerializer(user)
         return self.success(
             message=_('User details retrieved successfully'),
-            status=status.HTTP_200_OK,
+            status_code=status.HTTP_200_OK,
             data=serializer.data,
         )
+
 
 class UpdateUserProfile(APIResponseMixin, UpdateModelMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
-    @swagger_auto_schema(
+    @extend_schema(
         operation_id="Update user profile",
-        operation_summary="Update user profile",
+        summary="Update user profile",
         tags=["User"],
-        request_body=UserSerializer,
+        request=UserSerializer,
         responses={
-            200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            200: OpenApiResponse(
+                response=SuccessResponseSerializer,
+                description=_("User profile updated successfully")
+            ),
+            400: OpenApiResponse(
+                response=ErrorResponseSerializer,
+                description=_("Bad request")
+            ),
         }
     )
     def put(self, request):
@@ -50,9 +64,9 @@ class UpdateUserProfile(APIResponseMixin, UpdateModelMixin, APIView):
         serializer = UserSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        
+
         return self.success(
             message=_('User profile updated successfully'),
-            status=status.HTTP_200_OK,
+            status_code=status.HTTP_200_OK,
             data=serializer.data,
-        )   
+        )
