@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field, OpenApiTypes
 from rest_framework import serializers
 
 from apps.events.models.event import Event
@@ -12,6 +13,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = "__all__"
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_speaker(self, event):
         speaker = Speaker.objects.get(id=event.speaker.id)
         return SpeakerSerializer(speaker).data
