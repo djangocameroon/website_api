@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from apps.events.serializers.upload_serializer import UploadSerializer
 from mixins import APIResponseMixin
-
+from rest_framework.parsers import MultiPartParser
 
 class FileUploadView(APIView, APIResponseMixin):
     """
@@ -16,6 +16,8 @@ class FileUploadView(APIView, APIResponseMixin):
     """
     permission_classes = [IsAuthenticated]
     serializer_class = UploadSerializer
+    parser_classes = [MultiPartParser]
+
 
     @extend_schema(
         operation_id="Upload a file",
