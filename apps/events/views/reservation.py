@@ -1,30 +1,69 @@
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, OpenApiResponse
-from rest_framework import status
-from rest_framework.decorators import action, api_view
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
+from rest_framework import status, serializers
+from rest_framework.decorators import action
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from apps.events.models.reservation import Reservation
 from apps.events.serializers.reservation_serializer import (
-    CreateReservationInputSerializer,
     CreateReservationSerializer,
     ReservationSerializer,
 )
 from mixins.api_response_mixin import APIResponseMixin
-from utils.user_utils import get_connected_user
 
 
-class ReservationViewSet(GenericViewSet, APIResponseMixin):
+class ReservationViewSet(ModelViewSet, APIResponseMixin):
     queryset = Reservation.objects.all()
-    permission_classes = []
+    authentication_classes = [OAuth2Authentication]
+    serializer_class = ReservationSerializer
+    http_method_names = ["get", "post", "put", "delete"]
+    parser_classes = [JSONParser]
 
-    @action(
-        methods=["POST"],
-        detail=False,
-        serializer_class=CreateReservationInputSerializer,
-        url_path="create",
+    def get_permission_classes(self):
+        if self.action in ["list", "retrieve"]:
+            return [AllowAny]
+        return [IsAuthenticated]
+
+    @extend_schema(
+        summary="List all reservations",
+        operation_id="list_reservations",
+        description="List all reservations.",
+        tags=["Reservations"],
     )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Get reservation details",
+        operation_id="get_reservation_details",
+        description="Get reservation details.",
+        tags=["Reservations"],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Update a reservation",
+        operation_id="update_reservation",
+        description="Update a reservation.",
+        tags=["Reservations"],
+    )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Delete a reservation",
+        operation_id="delete_reservation",
+        description="Delete a reservation.",
+        tags=["Reservations"],
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+
     @extend_schema(
         summary="Create a reservation for an event.",
         operation_id="create_reservation",
@@ -37,31 +76,22 @@ class ReservationViewSet(GenericViewSet, APIResponseMixin):
             )
         },
     )
-    def create_reservation(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
-        connected_user = get_connected_user(request)
-        if not connected_user:
-            return self.error(
-                message=_("User not connected"),
-                status_code=status.HTTP_400_BAD_REQUEST,
-                errors=["User not connected"],
-            )
-        request.data["user"] = connected_user.id
+        request.data["user"] = request.user.id
 
         if serializer.is_valid():
             serializer = CreateReservationSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-
             reservation = Reservation.objects.create(**serializer.validated_data)
 
             # TODO: Implement the send_email function to send an email to the user
 
-            return Response(
-                ReservationSerializer(reservation).data,
-                status=status.HTTP_201_CREATED,
+            return self.success(
+                message=_("Reservation created successfully"),
+                status_code=status.HTTP_201_CREATED,
+                data=ReservationSerializer(reservation).data,
             )
-
         else:
             return self.error(
                 message=_("Validation error"),
@@ -80,7 +110,7 @@ class ReservationViewSet(GenericViewSet, APIResponseMixin):
             )
         },
     )
-    @api_view(["POST"])
+    @action(detail=False, methods=["POST"], permission_classes=[IsAuthenticated])
     def check_in(self, reservation_id: str) -> Response:
         """
         Check in a reservation.
@@ -88,22 +118,25 @@ class ReservationViewSet(GenericViewSet, APIResponseMixin):
         try:
             existing_reservation = Reservation.objects.get(id=reservation_id)
         except Reservation.DoesNotExist:
-            return Response(
-                {"error": _("Reservation not found")},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            raise serializers.ValidationError(_("Reservation not found"))
 
         existing_reservation.check_in = True
         existing_reservation.save()
-
         return self.success(
             message=_("Reservation checked in successfully"),
             status_code=status.HTTP_200_OK,
         )
 
     # TODO: Maybe Implement the get_reservations_stats function
-    @api_view(["GET"])
-    def get_reservations_statistics(request) -> Response:
+
+    @extend_schema(
+        summary="Get reservation statistics",
+        operation_id="get_reservations_statistics",
+        description="Get reservation statistics.",
+        tags=["Reservations"],
+    )
+    @action(detail=False, methods=["GET"], permission_classes=[IsAuthenticated])
+    def get_reservations_statistics(self) -> Response:
         """
         Get reservation statistics.
         """

@@ -27,7 +27,16 @@ def rest_exception_handler(exc, context):
 
 
 def _handle_drf_exception(exc, response):
-    errors = _extract_errors_from_response(exc, response)
+    if isinstance(exc, NotFound) or isinstance(exc, Http404):
+        response.data = {
+            "status": False,
+            "message": _("An error occurred while processing your request."),
+            "errors": ["This resource was not found."],
+            "status_code": response.status_code,
+        }
+        return response
+
+    errors = _extract_errors_from_response(response)
     response.data = {
         "status": False,
         "message": _('Validation error.') if isinstance(exc, (DjangoValidationError, DRFValidationError)) else _(
@@ -38,11 +47,44 @@ def _handle_drf_exception(exc, response):
     return response
 
 
-def _extract_errors_from_response(exc, response):
-    if isinstance(response.data, (list, dict)):
-        return [str(v) for v in response.data.values()] if isinstance(response.data, dict) else [str(item) for item in
-                                                                                                 response.data]
-    return [str(response.data)]
+def _extract_errors_from_response(response):
+    if isinstance(response.data, dict):
+        return _flatten_error_dict(response.data)
+    elif isinstance(response.data, list):
+        return _flatten_error_list(response.data)
+    else:
+        return [str(response.data)]
+
+
+def _flatten_error_dict(errors, parent_key=''):
+    """
+    Recursively flattens nested error dictionaries into a list of strings,
+    combining parent keys with child keys, and removing unnecessary indices.
+    """
+    flat_errors = []
+    for key, value in errors.items():
+        full_key = parent_key if parent_key else str(key)
+        if isinstance(value, list):
+            flat_errors.extend(_flatten_error_list(value, full_key))
+        elif isinstance(value, dict):
+            flat_errors.extend(_flatten_error_dict(value, full_key))
+        else:
+            flat_errors.append(f"{full_key}: {str(value)}")
+    return flat_errors
+
+
+def _flatten_error_list(errors, parent_key=''):
+    """
+    Flattens a list of errors, using the parent key and removing unnecessary indices.
+    """
+    flat_errors = []
+    for index, error in enumerate(errors):
+        full_key = parent_key
+        if isinstance(error, dict):
+            flat_errors.extend(_flatten_error_dict(error, full_key))
+        else:
+            flat_errors.append(f"{full_key}: {str(error)}")
+    return flat_errors
 
 
 def _handle_django_exception(exc):
@@ -52,6 +94,7 @@ def _handle_django_exception(exc):
 
     return Response({
         "status": False,
+        "message": message,
         "errors": errors,
         "status_code": status_code,
     }, status=status_code)

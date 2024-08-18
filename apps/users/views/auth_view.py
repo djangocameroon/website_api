@@ -5,6 +5,7 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from oauth2_provider.models import AccessToken
 from rest_framework import permissions
 from rest_framework import status
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from apps.users.helpers.auth import generate_tokens, authenticate_user, get_serializer
@@ -22,6 +23,7 @@ User = get_user_model()
 
 class UserRegistrationView(APIResponseMixin, APIView):
     permission_classes = (permissions.AllowAny,)
+    parser_classes = [JSONParser]
 
     @extend_schema(
         operation_id="Register user",
@@ -29,9 +31,14 @@ class UserRegistrationView(APIResponseMixin, APIView):
         request=UserRegistrationSerializer,
         tags=["Auth"],
         responses={
-            201: OpenApiResponse(response=SuccessResponseSerializer,
-                                 description=_("User account created successfully")),
-            400: OpenApiResponse(response=ErrorResponseSerializer, description=_("Bad request")),
+            201: OpenApiResponse(
+                response=SuccessResponseSerializer,
+                description=_("User account created successfully")
+            ),
+            400: OpenApiResponse(
+                response=ErrorResponseSerializer,
+                description=_("Bad request")
+            ),
         }
     )
     def post(self, request):
@@ -43,13 +50,14 @@ class UserRegistrationView(APIResponseMixin, APIView):
         return self.success(
             message=_('User account created successfully'),
             status_code=status.HTTP_201_CREATED,
-            data=serializer.data,
+            data={}
         )
 
 
 class LoginView(APIResponseMixin, APIView):
     serializer_class = LoginSerializer
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     @extend_schema(
         operation_id="Login",
@@ -86,6 +94,7 @@ class LoginView(APIResponseMixin, APIView):
 class PasswordResetRequestView(APIResponseMixin, APIView):
     serializer_class = PassWordResetRequestSerializer
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     @extend_schema(
         operation_id="Reset Password",
@@ -124,6 +133,7 @@ class PasswordResetRequestView(APIResponseMixin, APIView):
 class PasswordResetConfirmationView(APIResponseMixin, APIView):
     serializer_class = PasswordResetConfirmationSerializer
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
 
     @extend_schema(
         operation_id="Reset Password Confirmation",
@@ -182,6 +192,7 @@ class PasswordResetConfirmationView(APIResponseMixin, APIView):
 class LogoutView(APIResponseMixin, APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = None
+    parser_classes = [JSONParser]
 
     @extend_schema(
         operation_id="Logout",

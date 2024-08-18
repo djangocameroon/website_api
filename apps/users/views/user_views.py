@@ -4,6 +4,7 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework.mixins import UpdateModelMixin
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from apps.users.serializers import UserSerializer, SuccessResponseSerializer, ErrorResponseSerializer
@@ -14,6 +15,7 @@ User = get_user_model()
 
 class UserDetails(APIResponseMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
+    parser_classes = [JSONParser]
 
     @extend_schema(
         operation_id="Get user details",
@@ -42,6 +44,7 @@ class UserDetails(APIResponseMixin, APIView):
 
 class UpdateUserProfile(APIResponseMixin, UpdateModelMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
+    parser_classes = [JSONParser]
 
     @extend_schema(
         operation_id="Update user profile",

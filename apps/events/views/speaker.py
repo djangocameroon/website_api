@@ -1,6 +1,8 @@
 from drf_spectacular.utils import extend_schema
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from apps.events.models.speaker import Speaker
@@ -8,9 +10,7 @@ from apps.events.serializers.speaker_serializer import (
     SpeakerSerializer,
     SpeakerWithLastUpdatedBySerializer,
 )
-from apps.users.permissions.user_permissions import IsOrganizer
 from mixins.api_response_mixin import APIResponseMixin
-from utils.user_utils import get_connected_user
 
 
 class SpeakerViewSet(ModelViewSet, APIResponseMixin):
@@ -19,14 +19,10 @@ class SpeakerViewSet(ModelViewSet, APIResponseMixin):
     """
     queryset = Speaker.objects.all()
     serializer_class = SpeakerSerializer
-
-    def get_permissions(self):
-        if self.action in ("create", "update", "partial_update", "destroy"):
-            permission_classes = [IsOrganizer]
-        else:
-            permission_classes = [AllowAny]
-
-        return [permission() for permission in permission_classes]
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
+    http_method_names = ["get", "post", "put", "delete"]
 
     @extend_schema(
         tags=["Speakers"],
@@ -37,8 +33,6 @@ class SpeakerViewSet(ModelViewSet, APIResponseMixin):
         responses={201: SpeakerWithLastUpdatedBySerializer},
     )
     def create(self, request, *args, **kwargs):
-        self._set_connected_user(request)
-
         serializer = SpeakerWithLastUpdatedBySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -78,7 +72,6 @@ class SpeakerViewSet(ModelViewSet, APIResponseMixin):
         responses={200: SpeakerWithLastUpdatedBySerializer},
     )
     def update(self, request, *args, **kwargs):
-        self._set_connected_user(request)
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
         serializer = SpeakerWithLastUpdatedBySerializer(
@@ -105,8 +98,6 @@ class SpeakerViewSet(ModelViewSet, APIResponseMixin):
         responses={200: SpeakerWithLastUpdatedBySerializer},
     )
     def partial_update(self, request, *args, **kwargs):
-        self._set_connected_user(request)
-
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
@@ -119,15 +110,3 @@ class SpeakerViewSet(ModelViewSet, APIResponseMixin):
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
-
-    def _set_connected_user(self, request):
-        connected_user = get_connected_user(request)
-        if not connected_user:
-            return self.error(
-                message="User not connected",
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
-
-        request.data["last_updated_by"] = connected_user.id
-        request.data["created_by"] = connected_user.id
-        return connected_user
