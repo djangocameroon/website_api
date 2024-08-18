@@ -22,4 +22,6 @@ COPY config/docker/supervisord-celery.conf /etc/supervisor/conf.d/
 COPY config/script/start.sh /start.sh
 RUN chmod +x /start.sh
 
+EXPOSE 8000
+
 CMD ["/start.sh"]
