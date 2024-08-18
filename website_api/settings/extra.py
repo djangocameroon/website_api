@@ -1,7 +1,7 @@
 import os
 
 from utils.main import load_documentation
-from .base import BASE_DIR, TIME_ZONE
+from .base import BASE_DIR, TIME_ZONE, INSTALLED_APPS, MIDDLEWARE
 
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "exceptions.rest_exception.rest_exception_handler",
@@ -106,3 +106,14 @@ CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# Django Debug ToolBar settings
+if os.getenv("ENVIRONMENT") == "development":
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+    }
+    INTERNAL_IPS = [
+        '127.0.0.1',
+    ]

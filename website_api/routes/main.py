@@ -1,3 +1,4 @@
+import debug_toolbar
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -10,6 +11,7 @@ BASE_API_URL = "api/v1"
 urlpatterns = (
         [
             path("admin/", admin.site.urls),
+            path('__debug__/', include(debug_toolbar.urls)),
             path(f"{BASE_API_URL}/", include("apps.users.routes.api")),
             path(f"{BASE_API_URL}/", include("apps.events.routes.api")),
             path(f"{BASE_API_URL}/", include("apps.events.routes.extra")),
