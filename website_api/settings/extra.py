@@ -31,7 +31,7 @@ SPECTACULAR_SETTINGS = {
             'backgroundColor': '#FFFFFF',
             'altText': 'Django Cameroon',
             'href': 'https://djangocameroon.site',
-            'style': 'margin: 0 auto; display: block;',
+            'style': 'margin: 0 auto; display: block; border-radius: 50%; border: 1px solid #000000;',
         }
     },
     'CONTACT': {
