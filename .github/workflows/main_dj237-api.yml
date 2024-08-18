@@ -64,4 +64,4 @@ jobs:
       - name: Pull and deploy the pinned Docker image
         run: |
           docker pull ${{ env.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
-          docker run -d --name ${{ env.APP_NAME }} --restart always -p 80:8000 ${{ env.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
+          docker run -d --name ${{ env.APP_NAME }} --restart always -p 8000:8000 ${{ env.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
