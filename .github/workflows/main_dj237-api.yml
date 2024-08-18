@@ -36,9 +36,12 @@ jobs:
           username: ${{ env.AZURE_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ env.AZURE_CONTAINER_REGISTRY_PASSWORD }}
 
+      - name: Create .env file from secret
+        run: echo "${{ secrets.PROJECT_SECRET }}" > .env
+
       - name: Build and tag Docker image
         run: |
-          docker build -t ${{ env.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:latest .
+          docker build -f config/docker/Dockerfile -t ${{ env.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:latest .
           docker tag ${{ env.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:latest ${{ env.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }}
 
       - name: Push Docker image to ACR
