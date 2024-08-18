@@ -75,12 +75,18 @@ class Event(BaseModel):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self.title.lower().replace(" ", "-")
+            original_slug = self.slug
+            counter = 1
+            while Event.objects.filter(slug=self.slug).exists():
+                self.slug = f"{original_slug}-{counter}"
+                counter += 1
         super().save(*args, **kwargs)
 
     class Meta:
         db_table = "events"
         verbose_name = _("Event")
         verbose_name_plural = _("Events")
+        unique_together = ("title", "time", "location")
 
 
 class EventTag(models.Model):

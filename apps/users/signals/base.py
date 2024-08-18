@@ -8,15 +8,18 @@ from apps.users.models import BaseModel
 @receiver(pre_save, sender=BaseModel)
 def update_user_id(sender, instance, **kwargs):
     """
-    Signal to update the 'updated_by' field to the current user whenever a model instance is saved.
-    This assumes that you have access to the request object to determine the current user.
+    Signal to update the 'updated_by' and 'created_by' fields to the current user whenever a model instance is saved.
     """
     try:
         request = CrequestMiddleware.get_request()
-        user = request.user if request else None
-    except:
+        if request and request.user.is_authenticated:
+            user = request.user
+        else:
+            user = None
+    except Exception as e:
         user = None
 
     if not instance.created_by_id:
         instance.created_by = user
+
     instance.updated_by = user

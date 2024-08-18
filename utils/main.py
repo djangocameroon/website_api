@@ -22,8 +22,29 @@ def load_documentation(filename) -> str:
     """
     with open(os.path.join(documentation_path, filename), "r") as doc:
         return doc.read()
+
+
 import random
+
 
 def generate_otp():
     otp = random.randint(100000, 999999)
     return otp
+
+
+def add_tag_groups(result, generator, request, public):
+    result['x-tagGroups'] = [
+        {
+            'name': 'User Management',
+            'tags': ['Auth', 'User', ]
+        },
+        {
+            'name': 'Event Management',
+            'tags': ['Reservations', 'Events', 'Speakers', ]
+        },
+        {
+            'name': 'Blog Management',
+            'tags': ['Blog', 'Posts', 'Comments', ]
+        }
+    ]
+    return result

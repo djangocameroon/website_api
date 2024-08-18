@@ -25,9 +25,16 @@ class Speaker(BaseModel):
         help_text=_("Speaker's speciality"), verbose_name=_("Speciality"),
         null=True, blank=True,
     )
+    slug = models.SlugField(unique=True, null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.name.lower().replace(" ", "-")
+        self.active = True
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "speakers"
@@ -84,7 +91,7 @@ class SpeakerSocialMedia(BaseModel):
         help_text=_("Social media platform"),
     )
     handle = models.CharField(
-        max_length=50,  verbose_name=_("Handle"), help_text=_("Social media handle"),
+        max_length=50, verbose_name=_("Handle"), help_text=_("Social media handle"),
     )
 
     def save(self, *args, **kwargs):

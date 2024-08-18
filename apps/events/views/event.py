@@ -1,81 +1,60 @@
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, OpenApiResponse
-from rest_framework import status
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
+from rest_framework import status, serializers
+from rest_framework.decorators import action
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from apps.events.models.event import Event
 from apps.events.serializers.event_serializer import (
     CreateEventInputSerializer,
-    CreateEventSerializer,
     EventSerializer,
 )
 from apps.events.serializers.reservation_serializer import ReservationSerializer
-from apps.users.permissions.user_permissions import IsOrganizer
 from mixins.api_response_mixin import APIResponseMixin
-from utils.user_utils import get_connected_user
 
 
-class EventViewSet(GenericViewSet, APIResponseMixin):
+class EventViewSet(ModelViewSet, APIResponseMixin):
     queryset = Event.objects.all()
+    authentication_classes = [OAuth2Authentication]
+    serializer_class = EventSerializer
+    http_method_names = ["get", "post", "put", "delete"]
+    parser_classes = [JSONParser]
 
-    @action(
-        methods=["POST"],
-        detail=False,
-        serializer_class=CreateEventInputSerializer,
-        url_path="create",
-        permission_classes=[IsOrganizer],
-    )
+    def get_permission_classes(self):
+        if self.action in ["list", "retrieve"]:
+            return [AllowAny]
+        return [IsAuthenticated]
+
     @extend_schema(
         summary="Create an event",
         operation_id="create_event",
         description="Create an event.",
         responses={
             201: OpenApiResponse(
-                response=EventSerializer,
+                response=EventSerializer(),
                 description=_("Event created successfully")
             )
         },
         tags=["Events"],
     )
-    def create_event(self, request, *args, **kwargs):
-        create_event_serializer = self.get_serializer(data=request.data)
+    def create(self, request, *args, **kwargs):
+        create_event_serializer = CreateEventInputSerializer(data=request.data)
 
-        connected_user = get_connected_user(request)
-        if not connected_user:
-            return Response(
-                {"error": "User not connected"},
-                status=status.HTTP_400_BAD_REQUEST,
+        if create_event_serializer.is_valid(raise_exception=True):
+            event = create_event_serializer.save(created_by=request.user, updated_by=request.user)
+            response_serializer = EventSerializer(event)
+            return self.success(
+                message=_("Event created successfully"),
+                status_code=status.HTTP_201_CREATED,
+                data=response_serializer.data,
             )
-
-        request.data["created_by"] = connected_user.id
-
-        if create_event_serializer.is_valid():
-            create_event_serializer = CreateEventSerializer(data=request.data)
-            create_event_serializer.is_valid(raise_exception=True)
-
-            create_event_serializer.save()
-            return Response(
-                EventSerializer(create_event_serializer.instance).data,
-                status=status.HTTP_201_CREATED,
-            )
-
         else:
-            return self.error(
-                message=_("Error creating event"),
-                status_code=status.HTTP_400_BAD_REQUEST,
-                errors=create_event_serializer.errors,
-            )
+            raise serializers.ValidationError(create_event_serializer.errors)
 
-    @action(
-        methods=["GET"],
-        detail=False,
-        url_path="list",
-        serializer_class=EventSerializer,
-        permission_classes=[AllowAny],
-    )
     @extend_schema(
         summary="Get all events",
         operation_id="get_events",
@@ -88,7 +67,7 @@ class EventViewSet(GenericViewSet, APIResponseMixin):
         },
         tags=["Events"],
     )
-    def get_events(self, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         events = Event.objects.all()
         serializer = EventSerializer(events, many=True)
         return self.success(
@@ -96,6 +75,52 @@ class EventViewSet(GenericViewSet, APIResponseMixin):
             status_code=status.HTTP_200_OK,
             data=serializer.data,
         )
+
+    @extend_schema(
+        summary="Get event details",
+        operation_id="get_event_details",
+        description="Get event details.",
+        responses={
+            200: OpenApiResponse(
+                response=EventSerializer,
+                description=_("Event details")
+            )
+        },
+        tags=["Events"],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        event = self.get_object()
+        serializer = EventSerializer(event)
+        return self.success(
+            message=_("Event details"),
+            status_code=status.HTTP_200_OK,
+            data=serializer.data,
+        )
+
+    @extend_schema(
+        summary="Update an event",
+        operation_id="update_event",
+        description="Update an event.",
+        responses={
+            200: OpenApiResponse(
+                response=EventSerializer,
+                description=_("Event updated successfully")
+            )
+        },
+        tags=["Events"],
+    )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Delete an event",
+        operation_id="delete_event",
+        description="Delete an event.",
+        responses={204: None},
+        tags=["Events"],
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
     @extend_schema(
         summary="Publish an event",
@@ -108,20 +133,15 @@ class EventViewSet(GenericViewSet, APIResponseMixin):
         },
         tags=["Events"],
     )
-    @api_view(["POST"])
-    @permission_classes([IsOrganizer])
-    def publish_event(self, event_id: str) -> Response:
+    @action(detail=True, methods=["POST"], permission_classes=[IsAuthenticated])
+    def publish_event(self, request, event_id: str) -> Response:
         """
         Publish an event
         """
         try:
             event = Event.objects.get(id=event_id)
         except Event.DoesNotExist:
-            return self.error(
-                message=_("Event not found"),
-                status_code=status.HTTP_404_NOT_FOUND,
-            )
-
+            raise serializers.ValidationError(_("Event not found"))
         event.published = True
         event.save()
 
@@ -143,8 +163,7 @@ class EventViewSet(GenericViewSet, APIResponseMixin):
         },
         tags=["Events"],
     )
-    @api_view(["GET"])
-    @permission_classes([IsOrganizer])
+    @action(detail=False, methods=["GET"], permission_classes=[IsAuthenticated])
     def retrieve_event_reservations(self, event_id: str) -> Response:
         """
         Get all reservations for a specific event.
@@ -152,10 +171,7 @@ class EventViewSet(GenericViewSet, APIResponseMixin):
         try:
             existing_event = Event.objects.get(id=event_id)
         except Event.DoesNotExist:
-            return self.error(
-                message=_("Event not found"),
-                status_code=status.HTTP_404_NOT_FOUND,
-            )
+            raise serializers.ValidationError(_("Event not found"))
 
         reservations = existing_event.reservations.all()
         return self.success(

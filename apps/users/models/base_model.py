@@ -1,3 +1,4 @@
+from crequest.middleware import CrequestMiddleware
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -33,6 +34,23 @@ class BaseModel(models.Model):
         null=True,
         on_delete=models.SET_NULL
     )
+
+    def save(self, *args, **kwargs):
+        try:
+            request = CrequestMiddleware.get_request()
+            if request and request.user.is_authenticated:
+                user = request.user
+            else:
+                user = None
+        except Exception:
+            user = None
+
+        if not self.created_by_id:
+            self.created_by = user
+
+        self.updated_by = user
+
+        super().save(*args, **kwargs)
 
     class Meta:
         abstract = True
