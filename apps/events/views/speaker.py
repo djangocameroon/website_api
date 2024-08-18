@@ -2,7 +2,7 @@ from drf_spectacular.utils import extend_schema
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import status
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 
 from apps.events.models.speaker import Speaker
@@ -20,9 +20,18 @@ class SpeakerViewSet(ModelViewSet, APIResponseMixin):
     queryset = Speaker.objects.all()
     serializer_class = SpeakerSerializer
     authentication_classes = [OAuth2Authentication]
-    permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser]
     http_method_names = ["get", "post", "put", "delete"]
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ["list", "retrieve"]:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
     @extend_schema(
         tags=["Speakers"],

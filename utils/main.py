@@ -40,7 +40,7 @@ def add_tag_groups(result, generator, request, public):
         },
         {
             'name': 'Event Management',
-            'tags': ['Reservations', 'Events', 'Speakers', ]
+            'tags': ['Reservations', 'Events', 'Speakers', "File Upload",]
         },
         {
             'name': 'Blog Management',

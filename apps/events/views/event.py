@@ -18,21 +18,24 @@ from mixins.api_response_mixin import APIResponseMixin
 
 
 class EventViewSet(ModelViewSet, APIResponseMixin):
-    queryset = Event.objects.all()
+    queryset = Event.objects.all().select_related('created_by', 'updated_by')
     authentication_classes = [OAuth2Authentication]
     serializer_class = EventSerializer
     http_method_names = ["get", "post", "put", "delete"]
     parser_classes = [JSONParser]
 
-    def get_permission_classes(self):
+    def get_permissions(self):
         if self.action in ["list", "retrieve"]:
-            return [AllowAny]
-        return [IsAuthenticated]
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
     @extend_schema(
         summary="Create an event",
         operation_id="create_event",
         description="Create an event.",
+        request=CreateEventInputSerializer,
         responses={
             201: OpenApiResponse(
                 response=EventSerializer(),
@@ -43,17 +46,14 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
     )
     def create(self, request, *args, **kwargs):
         create_event_serializer = CreateEventInputSerializer(data=request.data)
-
-        if create_event_serializer.is_valid(raise_exception=True):
-            event = create_event_serializer.save(created_by=request.user, updated_by=request.user)
-            response_serializer = EventSerializer(event)
-            return self.success(
-                message=_("Event created successfully"),
-                status_code=status.HTTP_201_CREATED,
-                data=response_serializer.data,
-            )
-        else:
-            raise serializers.ValidationError(create_event_serializer.errors)
+        create_event_serializer.is_valid(raise_exception=True)
+        event = create_event_serializer.save(created_by=request.user, updated_by=request.user)
+        response_serializer = EventSerializer(event)
+        return self.success(
+            message=_("Event created successfully"),
+            status_code=status.HTTP_201_CREATED,
+            data=response_serializer.data,
+        )
 
     @extend_schema(
         summary="Get all events",
@@ -68,7 +68,9 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         tags=["Events"],
     )
     def list(self, request, *args, **kwargs):
-        events = Event.objects.all()
+        events = self.get_queryset().select_related(
+            'created_by', 'updated_by'
+        )
         serializer = EventSerializer(events, many=True)
         return self.success(
             message=_("List of events"),
@@ -89,7 +91,9 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         tags=["Events"],
     )
     def retrieve(self, request, *args, **kwargs):
-        event = self.get_object()
+        event = self.get_queryset().select_related(
+            'created_by', 'updated_by'
+        ).get(pk=kwargs['pk'])
         serializer = EventSerializer(event)
         return self.success(
             message=_("Event details"),
@@ -139,13 +143,12 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         Publish an event
         """
         try:
-            event = Event.objects.get(id=event_id)
+            event = Event.objects.only('id').get(id=event_id)
         except Event.DoesNotExist:
             raise serializers.ValidationError(_("Event not found"))
         event.published = True
-        event.save()
+        event.save(update_fields=['published'])
 
-        # TODO: Implement the send_email function to send an email to the
         return self.success(
             message=_("Event published successfully"),
             status_code=status.HTTP_200_OK,
@@ -164,16 +167,18 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         tags=["Events"],
     )
     @action(detail=False, methods=["GET"], permission_classes=[IsAuthenticated])
-    def retrieve_event_reservations(self, event_id: str) -> Response:
+    def retrieve_event_reservations(self, request, event_id: str) -> Response:
         """
         Get all reservations for a specific event.
         """
         try:
-            existing_event = Event.objects.get(id=event_id)
+            existing_event = Event.objects.prefetch_related('reservations').get(id=event_id)
         except Event.DoesNotExist:
             raise serializers.ValidationError(_("Event not found"))
 
-        reservations = existing_event.reservations.all()
+        reservations = existing_event.reservations.only(
+            'id', 'user', 'status', 'created_at'
+        )
         return self.success(
             message=_("List of reservations"),
             status_code=status.HTTP_200_OK,

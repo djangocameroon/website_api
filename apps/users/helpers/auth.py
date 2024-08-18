@@ -10,10 +10,6 @@ def get_serializer(self, *args, **kwargs):
     return self.serializer_class(*args, **kwargs)
 
 
-def authenticate_user(self, data):
-    return authenticate(username=data['email_or_username'], password=data['password'])
-
-
 def generate_tokens(self, user):
     application, _ = Application.objects.get_or_create(name="Default")
     expiration_time = now() + timedelta(days=1)

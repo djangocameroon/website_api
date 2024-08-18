@@ -50,7 +50,6 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         verbose_name_plural = _("Users")
 
 
-
 class UserSocialAccount(BaseModel):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="social_accounts",

@@ -32,6 +32,7 @@ class CreateEventInputSerializer(serializers.ModelSerializer):
     """
     tags = serializers.ListField(child=serializers.CharField(), required=False)
     speakers = serializers.ListField(child=serializers.CharField(), required=False)
+    thumbnail = serializers.ImageField(required=False)
 
     class Meta:
         model = Event
