@@ -14,6 +14,8 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app
 
+RUN python manage.py collectstatic --noinput
+
 COPY config/docker/supervisord-web.conf /etc/supervisor/conf.d/
 COPY config/docker/supervisord-celery.conf /etc/supervisor/conf.d/
 

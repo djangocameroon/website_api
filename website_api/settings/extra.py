@@ -1,7 +1,7 @@
 import os
 
 from utils.main import load_documentation
-from .base import BASE_DIR
+from .base import BASE_DIR, TIME_ZONE
 
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "exceptions.rest_exception.rest_exception_handler",
@@ -100,3 +100,9 @@ else:
     STATIC_URL = '/static/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Celery settings
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
