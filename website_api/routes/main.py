@@ -12,6 +12,7 @@ urlpatterns = (
             path("admin/", admin.site.urls),
             path(f"{BASE_API_URL}/", include("apps.users.routes.api")),
             path(f"{BASE_API_URL}/", include("apps.events.routes.api")),
+            path(f"{BASE_API_URL}/", include("apps.events.routes.extra")),
         ] + swagger_urlpatterns
         + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
         + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

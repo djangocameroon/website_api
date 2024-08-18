@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from apps.users.helpers.auth import generate_tokens, authenticate_user, get_serializer
+from apps.users.helpers.auth import generate_tokens, get_serializer
 from apps.users.models import OtpCode
 from apps.users.serializers import (
     UserRegistrationSerializer, SuccessResponseSerializer,
@@ -17,6 +17,7 @@ from apps.users.serializers import (
     PassWordResetRequestSerializer, PasswordResetConfirmationSerializer
 )
 from mixins import APIResponseMixin
+from utils.auth import authenticate_user
 
 User = get_user_model()
 

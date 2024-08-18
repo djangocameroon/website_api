@@ -59,31 +59,29 @@ def _extract_errors_from_response(response):
 def _flatten_error_dict(errors, parent_key=''):
     """
     Recursively flattens nested error dictionaries into a list of strings,
-    combining parent keys with child keys, and removing unnecessary indices.
+    removing keys and returning only the error messages.
     """
     flat_errors = []
     for key, value in errors.items():
-        full_key = parent_key if parent_key else str(key)
         if isinstance(value, list):
-            flat_errors.extend(_flatten_error_list(value, full_key))
+            flat_errors.extend(_flatten_error_list(value))
         elif isinstance(value, dict):
-            flat_errors.extend(_flatten_error_dict(value, full_key))
+            flat_errors.extend(_flatten_error_dict(value))
         else:
-            flat_errors.append(f"{full_key}: {str(value)}")
+            flat_errors.append(str(value))
     return flat_errors
 
 
-def _flatten_error_list(errors, parent_key=''):
+def _flatten_error_list(errors):
     """
-    Flattens a list of errors, using the parent key and removing unnecessary indices.
+    Flattens a list of errors, removing keys and returning only the error messages.
     """
     flat_errors = []
-    for index, error in enumerate(errors):
-        full_key = parent_key
+    for error in errors:
         if isinstance(error, dict):
-            flat_errors.extend(_flatten_error_dict(error, full_key))
+            flat_errors.extend(_flatten_error_dict(error))
         else:
-            flat_errors.append(f"{full_key}: {str(error)}")
+            flat_errors.append(str(error))
     return flat_errors
 
 

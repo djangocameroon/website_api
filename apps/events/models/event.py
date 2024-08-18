@@ -47,7 +47,13 @@ class Event(BaseModel):
         EventVenue, on_delete=models.CASCADE,
         verbose_name=_("Event location"), help_text=_("The location of the event"),
     )
-    time = models.DateTimeField()
+    date = models.DateTimeField(
+        verbose_name=_("Event date"), help_text=_("The date of the event"),
+    )
+    thumbnail = models.URLField(
+        null=True, blank=True,
+        verbose_name=_("Event thumbnail"), help_text=_("The thumbnail of the event"),
+    )
     type = models.CharField(
         max_length=50, choices=EVENT_TYPES,
         default=EventType.IN_PERSON, help_text=_("The type of the event"),
@@ -86,8 +92,7 @@ class Event(BaseModel):
         db_table = "events"
         verbose_name = _("Event")
         verbose_name_plural = _("Events")
-        unique_together = ("title", "time", "location")
-
+        unique_together = ("title", "date", "location")
 
 class EventTag(models.Model):
     name = models.CharField(max_length=50)

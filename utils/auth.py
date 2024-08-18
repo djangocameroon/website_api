@@ -1,6 +1,15 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
-from django.contrib.auth.models import User
 from django.db.models import Q
+
+User = get_user_model()
+
+
+def authenticate_user(self, data):
+    user = User.objects.get(Q(username=data['email_or_username']) | Q(email=data['email_or_username']))
+    if user and user.check_password(data['password']):
+        return user
+    return None
 
 
 class EmailOrUsernameBackend(BaseBackend):

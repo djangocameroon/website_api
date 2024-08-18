@@ -23,10 +23,15 @@ class ReservationViewSet(ModelViewSet, APIResponseMixin):
     http_method_names = ["get", "post", "put", "delete"]
     parser_classes = [JSONParser]
 
-    def get_permission_classes(self):
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
         if self.action in ["list", "retrieve"]:
-            return [AllowAny]
-        return [IsAuthenticated]
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
     @extend_schema(
         summary="List all reservations",
