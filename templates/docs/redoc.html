@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Documentation</title>
-    <link href="https://cdn.jsdelivr.net/npm/@redocly/try-it-out@0.1.0-beta.0/dist/try-it-out.min.css" rel="stylesheet">
+    <title>Django Cameroon API</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+    </style>
 </head>
 <body>
-<redoc
-    spec-url="{% url 'schema' %}"
-    try-it-out="true"
-    hide-hostname="true"
-    path-in-middle-panel="true"
-    expand-responses="all">
-</redoc>
-<script src="https://cdn.jsdelivr.net/npm/@redocly/try-it-out@0.1.0-beta.0/dist/try-it-out.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
+<div id="redoc-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/redoc@2.1.5/bundles/redoc.standalone.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/redoc-try-it-out/dist/try-it-out.min.js"></script>
+<script>
+    RedocTryItOut.init(
+        "{% url 'schema' %}",
+        {title: "Pet Store"},
+        document.getElementById("redoc_container")
+    )
+</script>
 </body>
 </html>
