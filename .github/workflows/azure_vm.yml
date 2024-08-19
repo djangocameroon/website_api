@@ -43,7 +43,7 @@ jobs:
           script: |
             cd ${{ github.event.repository.name }}
             source venv/bin/activate
-            pip install -r requirements.txt
+            pip install -r config/docker/requirements.txt
             sudo supervisorctl reread
             sudo supervisorctl update
             sudo supervisorctl restart all
