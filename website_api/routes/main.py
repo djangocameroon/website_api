@@ -19,3 +19,6 @@ urlpatterns = (
         + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
         + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 )
+
+handler404 = "apps.users.views.index.page_not_found_view"
+handler500 = "apps.users.views.index.server_error_view"
