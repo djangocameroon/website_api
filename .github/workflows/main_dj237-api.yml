@@ -3,7 +3,7 @@ name: Build and Deploy Django App to ACR
 on:
   push:
     branches:
-      - main
+      - main-copy
 
 env:
   AZURE_CONTAINER_REGISTRY_LOGIN_SERVER: ${{ secrets.AZURE_CONTAINER_REGISTRY_LOGIN_SERVER }}
