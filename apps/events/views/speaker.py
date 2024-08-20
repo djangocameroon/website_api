@@ -10,6 +10,7 @@ from apps.events.serializers.speaker_serializer import (
     SpeakerSerializer,
     SpeakerWithLastUpdatedBySerializer,
 )
+from apps.users.serializers.general_serializers import PaginatedResponseSerializer
 from mixins.api_response_mixin import APIResponseMixin
 
 
@@ -18,10 +19,14 @@ class SpeakerViewSet(ModelViewSet, APIResponseMixin):
     ViewSet for managing speakers.
     """
     queryset = Speaker.objects.all()
-    serializer_class = SpeakerSerializer
     authentication_classes = [OAuth2Authentication]
     parser_classes = [JSONParser]
     http_method_names = ["get", "post", "put", "delete"]
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return SpeakerSerializer
+        return SpeakerWithLastUpdatedBySerializer
 
     def get_permissions(self):
         """
@@ -57,7 +62,9 @@ class SpeakerViewSet(ModelViewSet, APIResponseMixin):
         summary="List all speakers",
         operation_id="list_speakers",
         description="List all speakers.",
-        responses={200: SpeakerSerializer(many=True)},
+        responses={
+            status.HTTP_200_OK: PaginatedResponseSerializer(data_serializer_class=SpeakerSerializer),
+        }
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)

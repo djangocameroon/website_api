@@ -19,9 +19,14 @@ from mixins.api_response_mixin import APIResponseMixin
 class ReservationViewSet(ModelViewSet, APIResponseMixin):
     queryset = Reservation.objects.all()
     authentication_classes = [OAuth2Authentication]
-    serializer_class = ReservationSerializer
     http_method_names = ["get", "post", "put", "delete"]
     parser_classes = [JSONParser]
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return ReservationSerializer
+        if self.action == "create":
+            return CreateReservationSerializer
 
     def get_permissions(self):
         """
@@ -40,7 +45,14 @@ class ReservationViewSet(ModelViewSet, APIResponseMixin):
         tags=["Reservations"],
     )
     def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+        reservations = self.get_queryset()
+        return self.paginated_response(
+            request=request,
+            queryset=reservations,
+            serializer_class=ReservationSerializer,
+            message=_("Reservations listed successfully"),
+            status_code=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         summary="Get reservation details",
