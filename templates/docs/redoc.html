@@ -13,14 +13,13 @@
     </style>
 </head>
 <body>
-<div id="redoc-container"></div>
 <script src="https://cdn.jsdelivr.net/npm/redoc@2.1.5/bundles/redoc.standalone.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/redoc-try-it-out/dist/try-it-out.min.js"></script>
 <script>
     RedocTryItOut.init(
         "{% url 'schema' %}",
         {title: "Pet Store"},
-        document.getElementById("redoc_container")
+        document.getElementById("redoc-container")
     )
 </script>
 </body>

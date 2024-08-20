@@ -20,9 +20,13 @@ from mixins.api_response_mixin import APIResponseMixin
 class EventViewSet(ModelViewSet, APIResponseMixin):
     queryset = Event.objects.all().select_related('created_by', 'updated_by')
     authentication_classes = [OAuth2Authentication]
-    serializer_class = EventSerializer
     http_method_names = ["get", "post", "put", "delete"]
     parser_classes = [JSONParser]
+
+    def get_serializer_class(self):
+        if self.action in ["list"]:
+            return EventSerializer
+        return EventSerializer
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
@@ -32,13 +36,35 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         return [permission() for permission in permission_classes]
 
     @extend_schema(
+        summary="Get all events",
+        operation_id="get_events",
+        description="Get all events.",
+        responses={
+            200: OpenApiResponse(
+                response=EventSerializer(many=True),
+                description=_("List of events"),
+            )
+        },
+        tags=["Events"],
+    )
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        return self.paginated_response(
+            request=request,
+            queryset=queryset,
+            serializer_class=EventSerializer,
+            message=_("List of events"),
+            status_code=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
         summary="Create an event",
         operation_id="create_event",
         description="Create an event.",
         request=CreateEventInputSerializer,
         responses={
             201: OpenApiResponse(
-                response=EventSerializer(),
+                response=EventSerializer,
                 description=_("Event created successfully")
             )
         },
@@ -48,34 +74,10 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         create_event_serializer = CreateEventInputSerializer(data=request.data)
         create_event_serializer.is_valid(raise_exception=True)
         event = create_event_serializer.save(created_by=request.user, updated_by=request.user)
-        response_serializer = EventSerializer(event)
         return self.success(
             message=_("Event created successfully"),
+            data=EventSerializer(event).data,
             status_code=status.HTTP_201_CREATED,
-            data=response_serializer.data,
-        )
-
-    @extend_schema(
-        summary="Get all events",
-        operation_id="get_events",
-        description="Get all events.",
-        responses={
-            200: OpenApiResponse(
-                response=EventSerializer(many=True),
-                description=_("List of events")
-            )
-        },
-        tags=["Events"],
-    )
-    def list(self, request, *args, **kwargs):
-        events = self.get_queryset().select_related(
-            'created_by', 'updated_by'
-        )
-        serializer = EventSerializer(events, many=True)
-        return self.success(
-            message=_("List of events"),
-            status_code=status.HTTP_200_OK,
-            data=serializer.data,
         )
 
     @extend_schema(

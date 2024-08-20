@@ -6,10 +6,13 @@ User = get_user_model()
 
 
 def authenticate_user(self, data):
-    user = User.objects.get(Q(username=data['email_or_username']) | Q(email=data['email_or_username']))
-    if user and user.check_password(data['password']):
-        return user
-    return None
+    try:
+        user = User.objects.get(Q(username=data['email_or_username']) | Q(email=data['email_or_username']))
+        if user and user.check_password(data['password']):
+            return user
+        return None
+    except User.DoesNotExist:
+        raise ValueError("Authentication credentials invalid")
 
 
 class EmailOrUsernameBackend(BaseBackend):

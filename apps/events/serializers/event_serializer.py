@@ -8,6 +8,7 @@ from apps.events.serializers.speaker_serializer import SpeakerSerializer
 
 class EventSerializer(serializers.ModelSerializer):
     speakers = serializers.SerializerMethodField()
+    tags = serializers.ListField(child=serializers.CharField(), required=False)
 
     class Meta:
         model = Event
