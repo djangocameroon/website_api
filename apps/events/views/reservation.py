@@ -27,6 +27,7 @@ class ReservationViewSet(ModelViewSet, APIResponseMixin):
             return ReservationSerializer
         if self.action == "create":
             return CreateReservationSerializer
+        return ReservationSerializer
 
     def get_permissions(self):
         """
