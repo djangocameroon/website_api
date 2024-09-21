@@ -20,6 +20,8 @@ EXTRA_MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
+
+
 # CORS configuration
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -41,6 +43,7 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost",
-    "https://www.djangocameroon.site",
     "https://djangocameroon.site",
+    "https://beta.djangocameroon.site",
+    "https://www.djangocameroon.site",
 ]

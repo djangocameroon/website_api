@@ -14,10 +14,6 @@ DEBUG = True if os.getenv('DEBUG') == 'True' else False
 
 ALLOWED_HOSTS = (os.environ.get("ALLOWED_HOSTS", "*")).split(",")
 
-CORS_ALLOWED_ORIGINS = (
-    os.environ.get("CORS_ALLOWED_ORIGINS", "https://127.0.0.1:3000")
-).split(",")
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -40,7 +36,7 @@ BASE_MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-MIDDLEWARE = BASE_MIDDLEWARE + EXTRA_MIDDLEWARE
+MIDDLEWARE = EXTRA_MIDDLEWARE + BASE_MIDDLEWARE
 
 ROOT_URLCONF = "website_api.routes"
 
