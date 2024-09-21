@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-from .apps import CUSTOM_APPS, THIRD_PARTY_APPS
+from .apps import CUSTOM_APPS, THIRD_PARTY_APPS, EXTRA_MIDDLEWARE
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -30,7 +30,7 @@ INSTALLED_APPS = [
 INSTALLED_APPS += THIRD_PARTY_APPS
 INSTALLED_APPS += CUSTOM_APPS
 
-MIDDLEWARE = [
+BASE_MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -38,10 +38,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-
-    "crequest.middleware.CrequestMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
+
+MIDDLEWARE = BASE_MIDDLEWARE + EXTRA_MIDDLEWARE
 
 ROOT_URLCONF = "website_api.routes"
 
