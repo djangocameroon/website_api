@@ -3,14 +3,10 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "drf_yasg",
     "oauth2_provider",
-   
-    
- 
-
 ]
 
 CUSTOM_APPS = [
     "apps.users",
     "apps.events",
-    "blog",
+    "apps.blog",
 ]

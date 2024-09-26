@@ -44,15 +44,15 @@ urlpatterns = (
             name="schema-swagger-ui",
         ),
         path("admin/", admin.site.urls),
+        
         # Users app
         path(f"{BASE_API_URL}/", include("apps.users.routes.api")),
+
         # Events app
         path(f"{BASE_API_URL}/", include("apps.events.routes.api")),
-         # Blog app
-        *blog_urls,
-        
 
-        
+         # Blog app
+        path(f"{BASE_API_URL}/", include("apps.blog.urls"))        
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

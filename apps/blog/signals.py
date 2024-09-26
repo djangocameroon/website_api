@@ -1,6 +1,6 @@
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from .models import Image
+from .models.models import Image
 import os
 
 @receiver(pre_delete, sender=Image)

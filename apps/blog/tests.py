@@ -1,6 +1,6 @@
 
 from django.test import TestCase
-from .models import Tag, Category, Author, Blog, Image
+from .models.models import Tag, Category, Author, Blog, Image
 
 class TagModelTest(TestCase):
     def setUp(self):
