@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions
-from .models.models import Blog, Tag, Category, Author, Image
+from .models import Blog, Tag, Category, Author, Image
 from .serializers import BlogSerializer, BlogCreateUpdateSerializer, TagSerializer, CategorySerializer, AuthorSerializer, ImageSerializer
 
 from .serializers import BlogSerializer, BlogCreateUpdateSerializer, TagSerializer, CategorySerializer, AuthorSerializer, ImageSerializer
