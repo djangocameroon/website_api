@@ -1,34 +1,18 @@
 import os
-from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .apps import CUSTOM_APPS, THIRD_PARTY_APPS
+from .apps import CUSTOM_APPS, THIRD_PARTY_APPS, EXTRA_MIDDLEWARE
 
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Load environment variables from .env file
-# if not load_dotenv(os.path.join(BASE_DIR, ".env")):
-#     print("No .env file found")
-#     exit()
 load_dotenv(os.path.join(BASE_DIR, ".env"))
-# Check if environment variables are set
-# if not os.getenv("SECRET_KEY"):
-#     exit()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-
-DEBUG = os.getenv("DEBUG", False)
+ENVIRONMENT = os.getenv("ENVIRONMENT")
+DEBUG = True if os.getenv('DEBUG') == 'True' else False
 
 ALLOWED_HOSTS = (os.environ.get("ALLOWED_HOSTS", "*")).split(",")
-
-CORS_ALLOWED_ORIGINS = (
-    os.environ.get("CORS_ALLOWED_ORIGINS", "https://127.0.0.1:3000")
-).split(",")
-
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -46,7 +30,7 @@ INSTALLED_APPS = [
 INSTALLED_APPS += THIRD_PARTY_APPS
 INSTALLED_APPS += CUSTOM_APPS
 
-MIDDLEWARE = [
+BASE_MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -55,6 +39,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+MIDDLEWARE = EXTRA_MIDDLEWARE + BASE_MIDDLEWARE
 
 ROOT_URLCONF = "website_api.routes"
 
@@ -88,7 +74,7 @@ DATABASES = {
         "USER": os.getenv("DB_USER"),
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("PORT"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 
@@ -124,9 +110,20 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
+LANGUAGES = [
+    ('en', 'English'),
+    ('fr', 'French'),
+    ('pcm', 'Pidgin'),
+]
+LOCALE_PATHS = [
+    os.path.abspath(os.path.join(BASE_DIR, "locale")),
+]
+
 TIME_ZONE = "Africa/Douala"
 
 USE_I18N = True
+
+USE_L10N = True
 
 USE_TZ = True
 

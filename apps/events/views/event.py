@@ -1,154 +1,188 @@
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.viewsets import GenericViewSet
-from rest_framework.decorators import action, api_view, permission_classes
+from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
+from rest_framework import status, serializers
+from rest_framework.decorators import action
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.viewsets import ModelViewSet
 
 from apps.events.models.event import Event
 from apps.events.serializers.event_serializer import (
     CreateEventInputSerializer,
-    CreateEventSerializer,
     EventSerializer,
 )
 from apps.events.serializers.reservation_serializer import ReservationSerializer
-from apps.users.user_permissions import IsOrganizer
-from utils.user_utils import get_connected_user
+from mixins.api_response_mixin import APIResponseMixin
 
 
-class EventViewSet(GenericViewSet):
+class EventViewSet(ModelViewSet, APIResponseMixin):
+    queryset = Event.objects.all().select_related('created_by', 'updated_by')
+    authentication_classes = [OAuth2Authentication]
+    http_method_names = ["get", "post", "put", "delete"]
+    parser_classes = [JSONParser]
 
-    @action(
-        methods=["POST"],
-        detail=False,
-        serializer_class=CreateEventInputSerializer,
-        url_path="create",
-        permission_classes=[IsOrganizer],
-    )
-    @swagger_auto_schema(
-        operation_summary="Create an event",
-        operation_id="create_event",
-        operation_description="Create an event.",
-        responses={201: EventSerializer()},
-        security=[{"Bearer": []}],
-        tags=["Events"],
-    )
-    def create_event(self, request, *args, **kwargs):
-        create_event_serializer = self.get_serializer(data=request.data)
+    def get_serializer_class(self):
+        if self.action in ["list"]:
+            return EventSerializer
+        return EventSerializer
 
-        # Retrieve the connected user (user making the request)
-        connected_user = get_connected_user(request)
-        if not connected_user:
-            return Response(
-                {"error": "User not connected"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Adding the connected user to the request data
-        request.data["created_by"] = connected_user.id
-
-        # Check if the input data is valid
-        if create_event_serializer.is_valid():
-            # Check if the input data is valid with the new value added
-            create_event_serializer = CreateEventSerializer(data=request.data)
-            create_event_serializer.is_valid(raise_exception=True)
-            
-            create_event_serializer.save()
-            return Response(
-                EventSerializer(create_event_serializer.instance).data,
-                status=status.HTTP_201_CREATED,
-            )
-
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            permission_classes = [AllowAny]
         else:
-            return Response(
-                create_event_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
-    @action(
-        methods=["GET"],
-        detail=False,
-        url_path="list",
-        serializer_class=EventSerializer,
-        permission_classes=[AllowAny],
-    )
-    @swagger_auto_schema(
-        operation_summary="Get all events",
+    @extend_schema(
+        summary="Get all events",
         operation_id="get_events",
-        operation_description="Get all events.",
-        responses={200: EventSerializer(many=True)},
-        security=[],
+        description="Get all events.",
+        responses={
+            200: OpenApiResponse(
+                response=EventSerializer(many=True),
+                description=_("List of events"),
+            )
+        },
         tags=["Events"],
     )
-    def get_events(self, request, *args, **kwargs):
-        events = Event.objects.all()
-        serializer = EventSerializer(events, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-@swagger_auto_schema(
-    method="POST",
-    operation_summary="Publish an event",
-    operation_id="publish_event",
-    operation_description="Publish an event.",
-    security=[{"Bearer": []}],
-    tags=["Events"],
-)
-@api_view(["POST"])
-@permission_classes([IsOrganizer])
-def publish_event(request, event_id: str) -> Response:
-    """
-    Publish an event
-    """
-    try:
-        event = Event.objects.get(id=event_id)
-    except:
-        event = None
-
-    if not event:
-        return Response(
-            {"error": "Event not found"},
-            status=status.HTTP_404_NOT_FOUND,
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        return self.paginated_response(
+            request=request,
+            queryset=queryset,
+            serializer_class=EventSerializer,
+            message=_("List of events"),
+            status_code=status.HTTP_200_OK,
         )
 
-    event.published = True
-    event.save()
-
-    # TODO: Implement the send_email function to send an email to the
-    # community members
-    return Response(
-        {"message": "Event published successfully"},
-        status=status.HTTP_200_OK,
+    @extend_schema(
+        summary="Create an event",
+        operation_id="create_event",
+        description="Create an event.",
+        request=CreateEventInputSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=EventSerializer,
+                description=_("Event created successfully")
+            )
+        },
+        tags=["Events"],
     )
-
-
-@swagger_auto_schema(
-    method="GET",
-    operation_summary="Get all reservations for a specific event",
-    operation_id="get_event_reservations",
-    operation_description="Get all reservations for a specific event.",
-    responses={200: ReservationSerializer(many=True)},
-    security=[{"Bearer": []}],
-    tags=["Events"],
-)
-@api_view(["GET"])
-@permission_classes([IsOrganizer])
-def retrieve_event_reservations(request, event_id: str) -> Response:
-    """
-    Get all reservations for a specific event.
-    """
-    try:
-        existing_event = Event.objects.get(id=event_id)
-    except:
-        existing_event = None
-
-    if not existing_event:
-        return Response(
-            {"error": "Event not found"},
-            status=status.HTTP_404_NOT_FOUND,
+    def create(self, request, *args, **kwargs):
+        create_event_serializer = CreateEventInputSerializer(data=request.data)
+        create_event_serializer.is_valid(raise_exception=True)
+        event = create_event_serializer.save(created_by=request.user, updated_by=request.user)
+        return self.success(
+            message=_("Event created successfully"),
+            data=EventSerializer(event).data,
+            status_code=status.HTTP_201_CREATED,
         )
 
-    reservations = existing_event.reservations.all()
-    return Response(
-        ReservationSerializer(reservations, many=True).data,
-        status=status.HTTP_200_OK,
+    @extend_schema(
+        summary="Get event details",
+        operation_id="get_event_details",
+        description="Get event details.",
+        responses={
+            200: OpenApiResponse(
+                response=EventSerializer,
+                description=_("Event details")
+            )
+        },
+        tags=["Events"],
     )
+    def retrieve(self, request, *args, **kwargs):
+        event = self.get_queryset().select_related(
+            'created_by', 'updated_by'
+        ).get(pk=kwargs['pk'])
+        serializer = EventSerializer(event)
+        return self.success(
+            message=_("Event details"),
+            status_code=status.HTTP_200_OK,
+            data=serializer.data,
+        )
+
+    @extend_schema(
+        summary="Update an event",
+        operation_id="update_event",
+        description="Update an event.",
+        responses={
+            200: OpenApiResponse(
+                response=EventSerializer,
+                description=_("Event updated successfully")
+            )
+        },
+        tags=["Events"],
+    )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Delete an event",
+        operation_id="delete_event",
+        description="Delete an event.",
+        responses={204: None},
+        tags=["Events"],
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Publish an event",
+        operation_id="publish_event",
+        description="Publish an event.",
+        responses={
+            200: OpenApiResponse(
+                description=_("Event published successfully")
+            )
+        },
+        tags=["Events"],
+    )
+    @action(detail=True, methods=["POST"], permission_classes=[IsAuthenticated])
+    def publish_event(self, request, event_id: str) -> Response:
+        """
+        Publish an event
+        """
+        try:
+            event = Event.objects.only('id').get(id=event_id)
+        except Event.DoesNotExist:
+            raise serializers.ValidationError(_("Event not found"))
+        event.published = True
+        event.save(update_fields=['published'])
+
+        return self.success(
+            message=_("Event published successfully"),
+            status_code=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
+        summary="Get all reservations for a specific event",
+        operation_id="get_event_reservations",
+        description="Get all reservations for a specific event.",
+        responses={
+            200: OpenApiResponse(
+                response=ReservationSerializer(many=True),
+                description=_("List of reservations")
+            )
+        },
+        tags=["Events"],
+    )
+    @action(detail=False, methods=["GET"], permission_classes=[IsAuthenticated])
+    def retrieve_event_reservations(self, request, event_id: str) -> Response:
+        """
+        Get all reservations for a specific event.
+        """
+        try:
+            existing_event = Event.objects.prefetch_related('reservations').get(id=event_id)
+        except Event.DoesNotExist:
+            raise serializers.ValidationError(_("Event not found"))
+
+        reservations = existing_event.reservations.only(
+            'id', 'user', 'status', 'created_at'
+        )
+        return self.success(
+            message=_("List of reservations"),
+            status_code=status.HTTP_200_OK,
+            data=ReservationSerializer(reservations, many=True).data,
+        )
