@@ -1,6 +1,10 @@
 
 from django.test import TestCase
-from .models import Tag, Category, Author, Blog, Image
+from apps.blog.models.tag import Tag
+from apps.blog.models.category import Category
+from apps.blog.models.author import Author
+from apps.blog.models.blog import Blog
+from apps.blog.models.image import Image
 
 class TagModelTest(TestCase):
     def setUp(self):

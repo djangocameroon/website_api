@@ -1,25 +1,13 @@
 from rest_framework import serializers
-from .models import Tag, Category, Author, Blog, Image
+from apps.blog.models.blog import Blog
+from apps.blog.models.author import Author
+from apps.blog.models.category import Category
+from apps.blog.models.tag import Tag
+from apps.blog.serializers.author_serializer import AuthorSerializer
+from apps.blog.serializers.category_serializer import CategorySerializer
+from apps.blog.serializers.tag_serializer import TagSerializer
+from apps.blog.serializers.image_serializer import ImageSerializer
 
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = '__all__'
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
-
-class AuthorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Author
-        fields = ('id', 'name', 'bio')
-
-class ImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Image
-        fields = '__all__'
 
 class BlogSerializer(serializers.ModelSerializer):
     author = AuthorSerializer()
@@ -75,6 +63,8 @@ class BlogSerializer(serializers.ModelSerializer):
             tag, _ = Tag.objects.get_or_create(**tag_data)
             updated_tags.append(tag)
         instance.tags.set(updated_tags)
+
+
 class BlogCreateUpdateSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
     categories = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), many=True)
