@@ -3,6 +3,7 @@
 
 # Ignore the virtual environment
 venv/
+.venv
 
 # Ignore the Django secret key
 secret_key.txt
