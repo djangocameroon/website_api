@@ -4,4 +4,4 @@ from apps.blog.models.image import Image
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = '__all__'
+        fields = ["image_file", "uploaded_at", "blog_post"]

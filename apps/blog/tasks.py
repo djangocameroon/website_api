@@ -1,5 +1,5 @@
 from celery import shared_task
-from .models import Image
+from apps.blog.models.image import Image
 
 @shared_task
 def handle_image_upload(image_id):
