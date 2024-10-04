@@ -1,9 +1,10 @@
 from django.db import models
+from apps.users.models.base_model import BaseModel
 from apps.blog.models.author import Author
 from apps.blog.models.tag import Tag
 from apps.blog.models.category import Category
 
-class Blog(models.Model):
+class Blog(BaseModel):
     title = models.CharField(max_length=200)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
