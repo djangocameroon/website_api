@@ -14,6 +14,8 @@ urlpatterns = (
             path('__debug__/', include(debug_toolbar.urls)),
             path(f"{BASE_API_URL}/", include("apps.users.routes.api")),
             path(f"{BASE_API_URL}/", include("apps.events.routes.api")),
+            path(f"{BASE_API_URL}/", include("apps.blog.routes.api")),
+
             path(f"{BASE_API_URL}/", include("apps.events.routes.extra")),
         ] + swagger_urlpatterns
         + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
