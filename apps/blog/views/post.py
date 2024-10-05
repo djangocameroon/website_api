@@ -16,3 +16,22 @@ class PostCreateView(generics.CreateAPIView):
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+        
+class PostListView(generics.ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+   
+    
+class UserProfileListView(generics.ListAPIView):   #Lists all posts by a specific user
+    serializer_class = PostSerializer
+    pagination_class = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return Post.objects.filter(user=self.request.user)
+    
