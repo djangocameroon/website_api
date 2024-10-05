@@ -19,6 +19,7 @@ Assuming postgresql is installed in your computer, follow what's next:
       sudo -u postgres psql
       ```
    - ```bash
+   
      -- Create a database
      CREATE DATABASE django_website_db;
      
