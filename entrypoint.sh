@@ -26,8 +26,8 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
   python manage.py shell << END
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@djangocameroon.com', 'admin')
+if not User.objects.filter(email='admin@djangocameroon.com').exists():
+    User.objects.create_superuser(email='admin@djangocameroon.com', password='admin', username='admin')
     print('Superuser created.')
 else:
     print('Superuser already exists.')
