@@ -3,6 +3,7 @@
 
 # Ignore the virtual environment
 venv/
+.venv
 
 # Ignore the Django secret key
 secret_key.txt
@@ -12,9 +13,11 @@ db.sqlite3
 
 # Ignore static files
 staticfiles/
+static/
 
 # Ignore media files
 media/
+
 
 # Ignore log files
 *.log

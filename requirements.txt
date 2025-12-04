@@ -40,3 +40,4 @@ celery==5.3.6
 redis==5.0.1
 setuptools<81
 whitenoise==6.6.0
+wrapt==1.16.0
