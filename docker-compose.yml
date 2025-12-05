@@ -5,9 +5,9 @@ services:
     volumes:
       - 'postgres_data:/var/lib/postgresql/data'
     environment:
-      - 'POSTGRES_DB=${DB_NAME:-django_cameroon}'
-      - 'POSTGRES_USER=${DB_USER:-postgres}'
-      - 'POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}'
+      - POSTGRES_DB=django_cameroon
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     healthcheck:
       test:
         - CMD-SHELL
