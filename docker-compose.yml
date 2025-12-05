@@ -1,17 +1,16 @@
 services:
   postgres:
-    image: 'postgres:16-alpine'
-    container_name: djangocameroon_postgres
+    image: postgres:16-alpine
     volumes:
-      - 'postgres_data:/var/lib/postgresql/data'
+      - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=django_cameroon
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     healthcheck:
       test:
         - CMD-SHELL
-        - 'pg_isready -U ${DB_USER:-postgres}'
+        - pg_isready -U ${DB_USER}
       interval: 10s
       timeout: 5s
       retries: 5
@@ -19,10 +18,9 @@ services:
       - djangocameroon_network
 
   redis:
-    image: 'redis:7-alpine'
-    container_name: djangocameroon_redis
+    image: redis:7-alpine
     volumes:
-      - 'redis_data:/data'
+      - redis_data:/data
     healthcheck:
       test:
         - CMD
@@ -38,25 +36,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: djangocameroon_web
-    command: 'gunicorn website_api.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120'
+    command: gunicorn website_api.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120
     volumes:
-      - '.:/app'
-      - 'static_volume:/app/staticfiles'
-      - 'media_volume:/app/media'
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
     expose:
-      - "8000"
-    env_file:
-      - .env
+      - 8000
     environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_NAME=django_cameroon
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - 'CELERY_BROKER_URL=redis://redis:6379/0'
-      - 'CELERY_RESULT_BACKEND=redis://redis:6379/0'
-      - RUN_MIGRATIONS=true
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - RUN_MIGRATIONS=${RUN_MIGRATIONS}
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,33 +64,34 @@ services:
       - djangocameroon_network
       - coolify
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.djangocameroon-web.rule=Host(`${APP_DOMAIN:-djangocameroon.org}`)"
-      - "traefik.http.routers.djangocameroon-web.entrypoints=websecure"
-      - "traefik.http.routers.djangocameroon-web.tls=true"
-      - "traefik.http.routers.djangocameroon-web.tls.certresolver=letsencrypt"
-      - "traefik.http.services.djangocameroon-web.loadbalancer.server.port=8000"
-      - "traefik.http.routers.djangocameroon-web-http.rule=Host(`${APP_DOMAIN:-djangocameroon.org}`)"
-      - "traefik.http.routers.djangocameroon-web-http.entrypoints=web"
-      - "traefik.http.routers.djangocameroon-web-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - traefik.enable=true
+      - traefik.http.routers.djangocameroon-web.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.djangocameroon-web.entrypoints=websecure
+      - traefik.http.routers.djangocameroon-web.tls=true
+      - traefik.http.routers.djangocameroon-web.tls.certresolver=letsencrypt
+      - traefik.http.services.djangocameroon-web.loadbalancer.server.port=8000
+      - traefik.http.routers.djangocameroon-web-http.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.djangocameroon-web-http.entrypoints=web
+      - traefik.http.routers.djangocameroon-web-http.middlewares=redirect-to-https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
 
   celery_worker:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: djangocameroon_celery_worker
-    command: 'celery -A website_api worker --loglevel=info --concurrency=2'
+    command: celery -A website_api worker --loglevel=info --concurrency=2
     volumes:
-      - '.:/app'
-    env_file:
-      - .env
+      - .:/app
     environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
       - DB_HOST=postgres
       - DB_PORT=5432
-      - 'CELERY_BROKER_URL=redis://redis:6379/0'
-      - 'CELERY_RESULT_BACKEND=redis://redis:6379/0'
-      - RUN_MIGRATIONS=false
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       postgres:
         condition: service_healthy
@@ -105,18 +104,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: djangocameroon_celery_beat
-    command: 'celery -A website_api beat --loglevel=info'
+    command: celery -A website_api beat --loglevel=info
     volumes:
-      - '.:/app'
-    env_file:
-      - .env
+      - .:/app
     environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
       - DB_HOST=postgres
       - DB_PORT=5432
-      - 'CELERY_BROKER_URL=redis://redis:6379/0'
-      - 'CELERY_RESULT_BACKEND=redis://redis:6379/0'
-      - RUN_MIGRATIONS=false
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       postgres:
         condition: service_healthy
