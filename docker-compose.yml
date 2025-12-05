@@ -51,6 +51,9 @@ services:
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
+      - DB_NAME=django_cameroon
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
       - 'CELERY_BROKER_URL=redis://redis:6379/0'
       - 'CELERY_RESULT_BACKEND=redis://redis:6379/0'
       - RUN_MIGRATIONS=true
