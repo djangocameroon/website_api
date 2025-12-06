@@ -62,18 +62,6 @@ services:
         condition: service_healthy
     networks:
       - djangocameroon_network
-      - coolify
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.djangocameroon-web.rule=Host(`${APP_DOMAIN}`)
-      - traefik.http.routers.djangocameroon-web.entrypoints=websecure
-      - traefik.http.routers.djangocameroon-web.tls=true
-      - traefik.http.routers.djangocameroon-web.tls.certresolver=letsencrypt
-      - traefik.http.services.djangocameroon-web.loadbalancer.server.port=8000
-      - traefik.http.routers.djangocameroon-web-http.rule=Host(`${APP_DOMAIN}`)
-      - traefik.http.routers.djangocameroon-web-http.entrypoints=web
-      - traefik.http.routers.djangocameroon-web-http.middlewares=redirect-to-https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
 
   celery_worker:
     build:
@@ -134,5 +122,3 @@ volumes:
 networks:
   djangocameroon_network:
     driver: bridge
-  coolify:
-    external: true
