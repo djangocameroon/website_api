@@ -42,7 +42,7 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
-      - "8001:8000"
+      - "${WEB_PORT:-8001}:8000"
     environment:
       - DEBUG=${DEBUG}
       - SECRET_KEY=${SECRET_KEY}
