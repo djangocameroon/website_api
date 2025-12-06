@@ -1,50 +1,137 @@
-# website_api
+# Website API
 
-## Installation
-1. Create and activate a virtual environment
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
+Une API RESTful construite avec Django et Django REST Framework pour gérer le contenu d'un site web, incluant des fonctionnalités de blog, d'événements et de gestion d'utilisateurs.
 
-2. Install dependencies  
-```bash
-pip3 install -r requirements.txt
-```  
+## 📋 Prérequis
 
-3. Setup a new postgres database
-Assuming postgresql is installed in your computer, follow what's next:
-   - ```bash
-      # accessing the postgres CLI
-      sudo -u postgres psql
-      ```
-   - ```bash
+- Python 3.8+
+- PostgreSQL 12+
+- Redis (pour le cache et les files d'attente)
+- pip (gestionnaire de paquets Python)
+
+## 🚀 Installation
+
+1. **Cloner le dépôt**
+   ```bash
+   git clone https://github.com/charles-kamga/website_api.git
+   cd website_api
+   ```
+
+2. **Configurer l'environnement virtuel**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Sur Windows: .\venv\Scripts\activate
+   ```
+
+3. **Installer les dépendances**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configurer la base de données PostgreSQL**
+   ```sql
+   -- Se connecter à PostgreSQL
+   sudo -u postgres psql
    
-     -- Create a database
-     CREATE DATABASE django_website_db;
-     
-     -- create a new user with the details below
-     CREATE USER 'db_username' WITH ENCRYPTED PASSWORD 'password';
-     -- Grant all priviledges
-     GRANT ALL PRIVILEGES ON DATABASE django_website_db TO 'db_username'@'host';
-       ```
+   -- Créer la base de données
+   CREATE DATABASE django_website_db;
+   
+   -- Créer un utilisateur (remplacez les valeurs entre crochets)
+   CREATE USER [db_user] WITH PASSWORD '[votre_mot_de_passe]';
+   
+   -- Accorder les privilèges
+   GRANT ALL PRIVILEGES ON DATABASE django_website_db TO [db_user];
+   ```
 
-    If postgreSQL is not installed in the computer, get to the tutorial [for Linux](https://www.cherryservers.com/blog/how-to-install-and-setup-postgresql-server-on-ubuntu-20-04) or [for Windows](https://www.microfocus.com/documentation/idol/IDOL_12_0/MediaServer/Guides/html/English/Content/Getting_Started/Configure/_TRN_Set_up_PostgreSQL.htm).
+5. **Configurer les variables d'environnement**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Modifiez le fichier `.env` avec vos paramètres :
+   - `DB_*` : Paramètres de connexion à la base de données
+   - `SECRET_KEY` : Clé secrète Django (générez-en une nouvelle pour la production)
+   - `EMAIL_*` : Configuration SMTP pour les emails
+   - `TWILLIO_*` : Identifiants Twilio pour la vérification par SMS (optionnel)
 
-4. Copy the .env.example file to .env and fill in the values in the .env file.  
-```bash
-cp -r .env.example .env
+6. **Appliquer les migrations**
+   ```bash
+   python manage.py migrate
+   ```
+
+7. **Créer un superutilisateur (optionnel)**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+8. **Lancer le serveur de développement**
+   ```bash
+   python manage.py runserver
+   ```
+   
+   L'API sera disponible à l'adresse : http://127.0.0.1:8000/
+   L'interface d'administration sera disponible à : http://127.0.0.1:8000/admin/
+
+## 🏗 Structure du projet
+
+```
+website_api/
+├── apps/                  # Applications Django
+│   ├── blog/             # Gestion des articles de blog
+│   ├── events/           # Gestion des événements
+│   └── users/            # Gestion des utilisateurs et authentification
+├── config/               # Configuration du projet
+├── documentation/        # Documentation supplémentaire
+├── middlewares/          # Middlewares personnalisés
+├── services/             # Logique métier
+└── website_api/          # Paramètres principaux du projet
 ```
 
-5. Apply database migrations 
+## 🔧 Variables d'environnement
+
+| Variable | Description | Valeur par défaut |
+|----------|-------------|-------------------|
+| `DEBUG` | Mode débogage | `True` en développement, `False` en production |
+| `SECRET_KEY` | Clé secrète Django | À définir en production |
+| `DB_*` | Paramètres de la base de données | Voir `.env.example` |
+| `EMAIL_*` | Configuration SMTP | À configurer pour les emails |
+| `REDIS_URL` | URL de connexion à Redis | `redis://127.0.0.1:6379` |
+| `TWILLIO_*` | Identifiants Twilio (SMS) | Optionnel |
+
+## 📚 Documentation de l'API
+
+La documentation de l'API est disponible à l'adresse `/api/docs/` lorsque le serveur est en cours d'exécution.
+
+## 🧪 Exécution des tests
+
 ```bash
-python3 manage.py migrate
+# Exécuter tous les tests
+python manage.py test
+
+# Exécuter les tests d'une application spécifique
+python manage.py test apps.users
 ```
 
-6. Run the server
-```bash
-python3 manage.py runserver
-```
+## 🛠 Outils de développement
 
-## Contributing
-Contributions are always welcome! If you have any bug reports, feature requests, or pull requests, please feel free to submit them.
+- **Linting** : `flake8`
+- **Formatage** : `black`
+- **Tri des imports** : `isort`
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! Voici comment contribuer :
+
+1. Forkez le projet
+2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/ma-nouvelle-fonctionnalite`)
+3. Committez vos changements (`git commit -am 'Ajouter une nouvelle fonctionnalité'`)
+4. Poussez vers la branche (`git push origin feature/ma-nouvelle-fonctionnalite`)
+5. Créez une Pull Request
+
+## 📄 Licence
+
+Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+## 📧 Contact
+
+Pour toute question, veuillez ouvrir une issue sur GitHub ou contacter l'équipe de développement.
