@@ -140,8 +140,10 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -159,7 +161,11 @@ services:
     image: grafana/grafana:latest
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    configs:
+      - source: grafana_datasource
+        target: /etc/grafana/provisioning/datasources/prometheus.yml
+      - source: grafana_dashboard
+        target: /etc/grafana/provisioning/dashboards/dashboard.yml
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
@@ -170,6 +176,14 @@ services:
       - djangocameroon_network
     depends_on:
       - prometheus
+
+configs:
+  prometheus_config:
+    file: ./monitoring/prometheus.yml
+  grafana_datasource:
+    file: ./monitoring/grafana/provisioning/datasources/prometheus.yml
+  grafana_dashboard:
+    file: ./monitoring/grafana/provisioning/dashboards/dashboard.yml
 
 volumes:
   postgres_data:
