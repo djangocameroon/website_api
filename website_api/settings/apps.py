@@ -1,4 +1,5 @@
 THIRD_PARTY_APPS = [
+    "django_prometheus",
     "corsheaders",
     "rest_framework",
     "drf_spectacular",
@@ -16,6 +17,7 @@ CUSTOM_APPS = [
 # ---------------------- some extra stuff ------------------------------------- #
 
 EXTRA_MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "crequest.middleware.CrequestMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
