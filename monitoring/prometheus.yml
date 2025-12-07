@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres_exporter:9187']
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis_exporter:9121']
+
+  - job_name: 'django_web'
+    static_configs:
+      - targets: ['web:8000']
+    metrics_path: '/metrics'
+
+  - job_name: 'celery'
+    static_configs:
+      - targets: ['celery_worker:8000']
+    metrics_path: '/metrics'
