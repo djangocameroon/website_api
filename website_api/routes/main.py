@@ -12,6 +12,7 @@ BASE_API_URL = "api/v1"
 urlpatterns = (
     [       path("admin/", admin.site.urls),
             path('__debug__/', include(debug_toolbar.urls)),
+            path('', include('django_prometheus.urls')),
             path(f"{BASE_API_URL}/", include("apps.users.routes.api")),
             path(f"{BASE_API_URL}/", include("apps.events.routes.api")),
             path(f"{BASE_API_URL}/", include("apps.events.routes.extra")),

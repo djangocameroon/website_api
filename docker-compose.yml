@@ -1,5 +1,6 @@
 services:
   postgres:
+    container_name: djangocameroon_postgres
     image: postgres:16-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -18,6 +19,7 @@ services:
       - djangocameroon_network
 
   redis:
+    container_name: djangocameroon_redis
     image: redis:7-alpine
     volumes:
       - redis_data:/data
@@ -33,6 +35,7 @@ services:
       - djangocameroon_network
 
   web:
+    container_name: djangocameroon_web
     build:
       context: .
       dockerfile: Dockerfile
@@ -64,6 +67,7 @@ services:
       - djangocameroon_network
 
   celery_worker:
+    container_name: djangocameroon_celery_worker
     build:
       context: .
       dockerfile: Dockerfile
@@ -89,6 +93,7 @@ services:
       - djangocameroon_network
 
   celery_beat:
+    container_name: djangocameroon_celery_beat
     build:
       context: .
       dockerfile: Dockerfile
@@ -114,6 +119,7 @@ services:
       - djangocameroon_network
 
   postgres_exporter:
+    container_name: djangocameroon_postgres_exporter
     image: prometheuscommunity/postgres-exporter:latest
     environment:
       - DATA_SOURCE_NAME=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
@@ -126,6 +132,7 @@ services:
       - djangocameroon_network
 
   redis_exporter:
+    container_name: djangocameroon_redis_exporter
     image: oliver006/redis_exporter:latest
     environment:
       - REDIS_ADDR=redis://redis:6379
@@ -138,9 +145,10 @@ services:
       - djangocameroon_network
 
   prometheus:
+    container_name: djangocameroon_prometheus
     image: prom/prometheus:latest
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -156,14 +164,16 @@ services:
       - redis_exporter
 
   grafana:
+    container_name: djangocameroon_grafana
     image: grafana/grafana:latest
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
     expose:
       - "3000"
     networks:
