@@ -1,0 +1,3 @@
+FROM grafana/grafana:latest
+
+COPY --chown=grafana:grafana --chmod=755 grafana/provisioning /etc/grafana/provisioning
