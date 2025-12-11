@@ -1,3 +1,5 @@
+🌍 Langues disponibles : [English](README.En.md) | **Français**
+
 # Website API
 
 Une API RESTful construite avec Django et Django REST Framework pour gérer le contenu d'un site web, incluant des fonctionnalités de blog, d'événements et de gestion d'utilisateurs.
