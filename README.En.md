@@ -1,4 +1,4 @@
-🌍 Available languages: **English** | [Français](README.fr.md)
+🌍 Available languages: **English** | [Français](README.md)
 
 # Website API
 
