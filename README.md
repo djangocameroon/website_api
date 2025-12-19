@@ -112,12 +112,6 @@ python manage.py test
 python manage.py test apps.users
 ```
 
-## 🛠 Outils de développement
-
-- **Linting** : `flake8`
-- **Formatage** : `black`
-- **Tri des imports** : `isort`
-
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues ! Voici comment contribuer :
