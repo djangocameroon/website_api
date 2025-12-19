@@ -13,7 +13,7 @@ Une API RESTful construite avec Django et Django REST Framework pour gérer le c
 
 1. **Cloner le dépôt**
    ```bash
-   git clone https://github.com/charles-kamga/website_api.git
+   git clone https://github.com/djangocameroon/website_api.git
    cd website_api
    ```
 
@@ -127,11 +127,3 @@ Les contributions sont les bienvenues ! Voici comment contribuer :
 3. Committez vos changements (`git commit -am 'Ajouter une nouvelle fonctionnalité'`)
 4. Poussez vers la branche (`git push origin feature/ma-nouvelle-fonctionnalite`)
 5. Créez une Pull Request
-
-## 📄 Licence
-
-Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
-
-## 📧 Contact
-
-Pour toute question, veuillez ouvrir une issue sur GitHub ou contacter l'équipe de développement.
