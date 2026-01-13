@@ -22,6 +22,13 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         default="https://via.placeholder.com/150", verbose_name=_("Profile Image"),
         help_text=_("URL to the user's profile image"),
     )
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name=_("Phone Number"),
+        help_text=_("Phone number for SMS notifications (E.164 format, e.g., +237XXXXXXXXX)")
+    )
     otp_codes = GenericRelation("users.OtpCode")
 
     gender = models.CharField(

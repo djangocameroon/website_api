@@ -1,0 +1,4 @@
+Django Cameroon: Event reminder.
+Event: {{ event_title }}
+Starts: {{ time_text }}
+Details: {{ event_url }}

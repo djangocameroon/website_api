@@ -1,0 +1,46 @@
+{% extends "mails/base.html" %}
+
+{% block title %}New Login Detected{% endblock %}
+{% block header %}Security Alert{% endblock %}
+
+{% block content %}
+<h2>New Login Detected</h2>
+
+<p>Hello {{ user.first_name|default:user.username }},</p>
+
+<p>We detected a new login to your Django Cameroon account from a location or device we haven't seen before.</p>
+
+<div class="warning-box">
+    <p><strong>Login Details:</strong></p>
+    <p><strong>Time:</strong> {{ login_time|date:"l, F d, Y" }} at {{ login_time|time:"g:i A" }}</p>
+    <p><strong>IP Address:</strong> {{ ip_address }}</p>
+    {% if location %}
+    <p><strong>Location:</strong> {{ location }}</p>
+    {% endif %}
+    {% if device %}
+    <p><strong>Device:</strong> {{ device }}</p>
+    {% endif %}
+    {% if browser %}
+    <p><strong>Browser:</strong> {{ browser }}</p>
+    {% endif %}
+</div>
+
+<div class="info-box">
+    <p><strong>Was this you?</strong></p>
+    <p>If you recognize this login, you can safely ignore this email. Your account remains secure.</p>
+</div>
+
+<div class="warning-box">
+    <p><strong>Didn't recognize this login?</strong></p>
+    <p>If this wasn't you, please take the following actions immediately:</p>
+    <ul>
+        <li>Change your password</li>
+        <li>Review your account activity</li>
+        <li>Contact us if you need assistance</li>
+    </ul>
+    <a href="{{ site_url }}/account/security" class="button">Secure My Account</a>
+</div>
+
+<p>We're committed to keeping your account safe and secure.</p>
+<p><strong>The Django Cameroon Team</strong></p>
+{% endblock %}

@@ -1,0 +1,5 @@
+Django Cameroon: Event cancelled.
+Event: {{ event_title }}
+Scheduled: {{ event_date }}
+Event page: {{ event_url }}
+Check your email for the cancellation details.

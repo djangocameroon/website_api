@@ -1,0 +1,30 @@
+{% extends "mails/base.html" %}
+
+{% block title %}Welcome to Django Cameroon{% endblock %}
+{% block header %}Welcome to Django Cameroon!{% endblock %}
+
+{% block content %}
+<h2>Hello {{ user.first_name|default:user.username }}!</h2>
+
+<p>Welcome to the Django Cameroon community! We're thrilled to have you join us.</p>
+
+<p>Django Cameroon is a vibrant community of Python and Django developers in Cameroon. We organize workshops, meetups, and events to help developers learn, grow, and connect.</p>
+
+<div class="info-box">
+    <p><strong>What's next?</strong></p>
+    <ul>
+        <li>Complete your profile to connect with other members</li>
+        <li>Browse upcoming events and register to attend</li>
+        <li>Join our discussions and share your knowledge</li>
+    </ul>
+</div>
+
+<a href="{{ site_url }}/profile" class="button">Complete Your Profile</a>
+
+<a href="{{ site_url }}/events" class="button">Browse Events</a>
+
+<p>If you have any questions, feel free to reach out to us at djangocameroon@gmail.com.</p>
+
+<p>Happy coding!</p>
+<p><strong>The Django Cameroon Team</strong></p>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "mails/base.html" %}
+
+{% block title %}Upcoming Events This Month{% endblock %}
+{% block header %}Upcoming Events{% endblock %}
+
+{% block content %}
+<h2>Events Coming Up!</h2>
+
+<p>Hello {{ user.first_name|default:user.username }},</p>
+
+<p>Here are the exciting events happening this month in the Django Cameroon community:</p>
+
+{% for event in events %}
+<div class="event-details">
+    <h3 style="margin-top: 0; color: #0C4B33;">{{ event.title }}</h3>
+    <p><strong>Date:</strong> {{ event.date|date:"l, F d, Y" }} at {{ event.date|time:"g:i A" }}</p>
+    <p><strong>Type:</strong> {{ event.get_type_display }}</p>
+    <p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city.name }}</p>
+    <p>{{ event.description|truncatewords:30 }}</p>
+    <a href="{{ site_url }}/events/{{ event.slug }}" class="button">Learn More</a>
+</div>
+{% endfor %}
+
+{% if not events %}
+<div class="info-box">
+    <p>No events scheduled for this month yet. Stay tuned for updates!</p>
+</div>
+{% endif %}
+
+<a href="{{ site_url }}/events" class="button">View All Events</a>
+
+<p>Don't miss out on these amazing opportunities to learn and grow!</p>
+<p><strong>The Django Cameroon Team</strong></p>
+{% endblock %}

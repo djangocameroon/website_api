@@ -1,0 +1,1 @@
+Welcome to Django Cameroon, {{ user_name }}! We're excited to have you in our community. Visit djangocameroon.site to explore events.

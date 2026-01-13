@@ -1,0 +1,1 @@
+Your Django Cameroon verification code is: {{ otp_code }}. This code expires in 10 minutes.

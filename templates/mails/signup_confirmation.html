@@ -1,0 +1,27 @@
+{% extends "mails/base.html" %}
+
+{% block title %}Account Created - Django Cameroon{% endblock %}
+{% block header %}Your account is ready{% endblock %}
+
+{% block content %}
+<h2>Hello {{ user.first_name|default:user.username }}!</h2>
+
+<p>Thanks for signing up for Django Cameroon. Your account has been successfully created.</p>
+
+<div class="info-box">
+    <p><strong>Next steps</strong></p>
+    <ul>
+        <li>Complete your profile</li>
+        <li>Browse upcoming events and register</li>
+        <li>Join the community and start learning</li>
+    </ul>
+</div>
+
+<a href="{{ site_url }}/profile" class="button">Complete Your Profile</a>
+
+<a href="{{ site_url }}/events" class="button">Browse Events</a>
+
+<p>If you did not create this account, please contact us at djangocameroon@gmail.com.</p>
+
+<p><strong>The Django Cameroon Team</strong></p>
+{% endblock %}

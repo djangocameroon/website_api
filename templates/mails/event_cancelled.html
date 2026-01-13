@@ -1,0 +1,34 @@
+{% extends "mails/base.html" %}
+
+{% block title %}Event Cancelled: {{ event.title }}{% endblock %}
+{% block header %}Event Cancellation Notice{% endblock %}
+
+{% block content %}
+<h2>Event Cancelled</h2>
+
+<p>Hello {{ user.first_name|default:user.username }},</p>
+
+<p>We regret to inform you that the following event has been cancelled:</p>
+
+<div class="warning-box">
+    <p><strong>Event:</strong> {{ event.title }}</p>
+    <p><strong>Scheduled Date:</strong> {{ event.date|date:"l, F d, Y" }} at {{ event.date|time:"g:i A" }}</p>
+    <p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city.name }}</p>
+</div>
+
+{% if cancellation_reason %}
+<div class="info-box">
+    <p><strong>Reason for cancellation:</strong></p>
+    <p>{{ cancellation_reason }}</p>
+</div>
+{% endif %}
+
+<p>We apologize for any inconvenience this may cause. {% if reschedule_info %}{{ reschedule_info }}{% else %}We'll keep you updated on future events.{% endif %}</p>
+
+<a href="{{ site_url }}/events/{{ event.slug }}" class="button">View Event Page</a>
+
+<a href="{{ site_url }}/events" class="button">Browse Other Events</a>
+
+<p>Thank you for your understanding.</p>
+<p><strong>The Django Cameroon Team</strong></p>
+{% endblock %}
