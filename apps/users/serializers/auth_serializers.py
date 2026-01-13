@@ -10,6 +10,18 @@ from apps.users.serializers.general_serializers import UserSerializer
 User = get_user_model()
 
 
+PASSWORD_REGEX = (
+    r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)"
+    r"(?=.*[!@#$%^&*()_\-+=\[\]{}|;:'\",.<>/?~`\\])"
+    r"[A-Za-z\d!@#$%^&*()_\-+=\[\]{}|;:'\",.<>/?~`\\]{8,16}$"
+)
+
+PASSWORD_VALIDATION_ERROR = _(
+    'Password must be at least 8 characters long and contain at least one uppercase letter, '
+    'one lowercase letter, one digit, and one special character'
+)
+
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         max_length=128,
@@ -26,10 +38,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate_password_confirmation(self, value):
         password = self.get_initial().get('password')
-        password_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()\-_=+{};:,<.>])[A-Za-z\d@$!%*?&#^()\-_=+{};:,<.>]{8,16}$'
-        if not re.match(password_regex, password):
+        if not password or not re.match(PASSWORD_REGEX, password):
             raise serializers.ValidationError(
-                _('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character'),
+                PASSWORD_VALIDATION_ERROR,
             )
         if password != value:
             raise serializers.ValidationError(
@@ -84,6 +95,8 @@ class PasswordResetConfirmationSerializer(serializers.Serializer):
 
     def validate_password_confirmation(self, value):
         password = self.get_initial().get('password')
+        if not password or not re.match(PASSWORD_REGEX, password):
+            raise serializers.ValidationError(PASSWORD_VALIDATION_ERROR)
         if password != value:
             raise serializers.ValidationError(_('Passwords do not match'))
         return value

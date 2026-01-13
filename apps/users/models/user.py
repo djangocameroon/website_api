@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy as _
 from apps.events.models.speaker import AvailableSocialMedia
 from apps.users.models import BaseModel
 from apps.users.models.user_manager import UserManager
-from services import MailService
 
 
 class User(BaseModel, AbstractUser, PermissionsMixin):
@@ -47,8 +46,9 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     objects = UserManager()
 
     def send_email_otp(self) -> None:
-        mail_service = MailService()
-        mail_service.send_otp(self)
+        from apps.users.tasks import send_email_otp_task
+
+        send_email_otp_task.delay(self.pk)
         return None
 
     class Meta:
