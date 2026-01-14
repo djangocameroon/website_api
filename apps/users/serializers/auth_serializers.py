@@ -50,10 +50,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'username', 'password', 'password_confirmation']
+        fields = ['first_name', 'last_name', 'email', 'username', 'phone_number', 'password', 'password_confirmation']
 
     def create(self, validated_data):
         validated_data.pop('password_confirmation')
+        validated_data['is_active'] = False
         return User.objects.create_user(**validated_data)
 
 
@@ -100,3 +101,12 @@ class PasswordResetConfirmationSerializer(serializers.Serializer):
         if password != value:
             raise serializers.ValidationError(_('Passwords do not match'))
         return value
+
+
+class EmailVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(
+        max_length=6,
+        min_length=6,
+        help_text=_('6-digit OTP code sent to your email')
+    )

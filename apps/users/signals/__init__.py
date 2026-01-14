@@ -5,18 +5,15 @@ from django.contrib.auth.signals import user_logged_in
 from crequest.middleware import CrequestMiddleware
 
 from apps.users.models import LoginHistory, BaseModel
-from apps.users.tasks import send_new_location_login_alert_task, send_user_created_notifications_task
+from apps.users.tasks import send_new_location_login_alert_task, send_registration_otp_task
 
 User = get_user_model()
 
 
 @receiver(post_save, sender=User)
-def send_welcome_email(sender, instance, created, **kwargs):
-    """
-    Send welcome email to new users
-    """
+def send_otp_on_registration(sender, instance, created, **kwargs):
     if created:
-        send_user_created_notifications_task.delay(instance.pk)
+        send_registration_otp_task.delay(instance.pk)
 
 
 @receiver(user_logged_in)

@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 
 from apps.users.models.login_history import LoginHistory
-from services import MailService
+from services import MailService, SMSService
 from services import NotificationService
 from services.notification_preferences import get_notification_preferences
 
@@ -92,3 +92,36 @@ def send_email_otp_task(user_id: int) -> None:
         MailService().send_otp(user)
     except Exception:
         logger.exception("Error sending OTP email to user id=%s", user_id)
+
+
+@shared_task
+def send_registration_otp_task(user_id: int) -> None:
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        logger.error("User with id=%s not found for OTP sending", user_id)
+        return
+
+    try:
+        MailService().send_otp(user)
+        logger.info("OTP email sent to user id=%s (%s)", user_id, user.email)
+    except Exception:
+        logger.exception("Error sending OTP email to user id=%s", user_id)
+
+    if user.phone_number:
+        try:
+            sms_service = SMSService()
+            if sms_service.is_configured():
+                latest_otp = user.otp_codes.order_by('-expires_at').first()
+                if latest_otp:
+                    result = sms_service.send_otp_sms(user.phone_number, latest_otp.otp_code)
+                    if result.get('success'):
+                        logger.info("OTP SMS sent to user id=%s (%s)", user_id, user.phone_number)
+                    else:
+                        logger.warning("Failed to send OTP SMS to user id=%s: %s", user_id, result.get('error'))
+                else:
+                    logger.warning("No OTP found for user id=%s", user_id)
+            else:
+                logger.warning("SMS service not configured, skipping SMS OTP for user id=%s", user_id)
+        except Exception:
+            logger.exception("Error sending OTP SMS to user id=%s", user_id)

@@ -1,2 +1,2 @@
-from apps.users.serializers.auth_serializers import UserRegistrationSerializer, LoginSerializer, LoginResponseSerializer, PassWordResetRequestSerializer, PasswordResetConfirmationSerializer
+from apps.users.serializers.auth_serializers import UserRegistrationSerializer, LoginSerializer, LoginResponseSerializer, PassWordResetRequestSerializer, PasswordResetConfirmationSerializer, EmailVerificationSerializer
 from apps.users.serializers.general_serializers import SuccessResponseSerializer, ErrorResponseSerializer, UserSerializer
