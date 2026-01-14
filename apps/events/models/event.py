@@ -7,6 +7,7 @@ from apps.events.models.constants import (
     EventCategory, EventType,
 )
 from apps.users.models.base_model import BaseModel
+from services import CalendarService
 
 
 class EventRegion(models.Model):
@@ -77,6 +78,12 @@ class Event(BaseModel):
 
     def __str__(self):
         return self.title
+
+    def get_calendar_ics(self):
+        calendar_service = CalendarService()
+        ics_content = calendar_service.generate_event_ics(self)
+        filename = calendar_service.generate_filename(self)
+        return filename, ics_content
 
     def save(self, *args, **kwargs):
         if not self.slug:

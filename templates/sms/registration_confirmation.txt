@@ -1,0 +1,8 @@
+Django Cameroon: Registration confirmed.
+
+Event: {{ event_title }}
+
+{% if registration_code %}Registration code: {{ registration_code }}
+{% endif %}Event page: {{ event_url }}
+
+Check your email for full details.

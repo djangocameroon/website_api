@@ -31,13 +31,13 @@ SPECTACULAR_SETTINGS = {
             'url': 'https://avatars.githubusercontent.com/u/142497557',
             'backgroundColor': '#FFFFFF',
             'altText': 'Django Cameroon',
-            'href': 'https://djangocameroon.site',
+            'href': 'https://djangocameroon.org',
             'style': 'margin: 0 auto; display: block; border-radius: 50%; border: 1px solid #000000;',
         }
     },
     'CONTACT': {
         'name': 'Django Cameroon',
-        'url': 'https://djangocameroon.site',
+        'url': 'https://djangocameroon.org',
         'email': 'support@djangocameroon.site',
     },
     'REDOC_SETTINGS': {

@@ -9,6 +9,8 @@ def authenticate_user(self, data):
     try:
         user = User.objects.get(Q(username=data['email_or_username']) | Q(email=data['email_or_username']))
         if user and user.check_password(data['password']):
+            if not user.is_active:
+                raise ValueError("Account is not active. Please verify your email to activate your account.")
             return user
         return None
     except User.DoesNotExist:
@@ -22,7 +24,7 @@ class EmailOrUsernameBackend(BaseBackend):
         except User.DoesNotExist:
             return None
 
-        if user.check_password(password):
+        if user.check_password(password) and user.is_active:
             return user
         return None
 

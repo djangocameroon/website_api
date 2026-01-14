@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Django Cameroon{% endblock %}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #0C4B33 0%, #092E1F 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 40px 30px;
+        }
+        .email-body h2 {
+            color: #0C4B33;
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .email-body p {
+            margin: 15px 0;
+            color: #555555;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 20px 0;
+            background-color: #0C4B33;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+        .button:hover {
+            background-color: #092E1F;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0C4B33;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .event-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .event-details strong {
+            color: #0C4B33;
+            display: inline-block;
+            width: 120px;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #777777;
+            font-size: 14px;
+        }
+        .email-footer a {
+            color: #0C4B33;
+            text-decoration: none;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 5px;
+            color: #0C4B33;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>{% block header %}Django Cameroon{% endblock %}</h1>
+        </div>
+        <div class="email-body">
+            {% block content %}{% endblock %}
+        </div>
+        <div class="email-footer">
+            <div class="social-links">
+                <a href="https://twitter.com/djangocameroon">Twitter</a> |
+                <a href="https://github.com/djangocameroon">GitHub</a> |
+                <a href="https://djangocameroon.org">Website</a>
+            </div>
+            <p>
+                Django Cameroon Community<br>
+                <a href="mailto:djangocameroon@gmail.com">djangocameroon@gmail.com</a>
+            </p>
+            <p style="font-size: 12px; color: #999999;">
+                You are receiving this email because you are a member of the Django Cameroon community.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

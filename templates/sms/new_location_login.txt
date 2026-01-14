@@ -1,0 +1,1 @@
+Security Alert: New login detected from {{ location }} at {{ time }}. If this wasn't you, secure your account immediately.

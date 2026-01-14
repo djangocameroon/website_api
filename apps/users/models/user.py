@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy as _
 from apps.events.models.speaker import AvailableSocialMedia
 from apps.users.models import BaseModel
 from apps.users.models.user_manager import UserManager
-from services import MailService
 
 
 class User(BaseModel, AbstractUser, PermissionsMixin):
@@ -22,6 +21,13 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         default="https://via.placeholder.com/150", verbose_name=_("Profile Image"),
         help_text=_("URL to the user's profile image"),
     )
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name=_("Phone Number"),
+        help_text=_("Phone number for SMS notifications (E.164 format, e.g., +237XXXXXXXXX)")
+    )
     otp_codes = GenericRelation("users.OtpCode")
 
     gender = models.CharField(
@@ -34,14 +40,28 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         default="Male",
     )
 
+    is_organizer = models.BooleanField(
+        default=False,
+        verbose_name=_("Is Organizer"),
+        help_text=_("Designates whether the user is an event organizer")
+    )
+
+    bio = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("Bio"),
+        help_text=_("Short biography or description of the user")
+    )
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
 
     def send_email_otp(self) -> None:
-        mail_service = MailService()
-        mail_service.send_otp(self)
+        from apps.users.tasks import send_email_otp_task
+
+        send_email_otp_task.delay(self.pk)
         return None
 
     class Meta:

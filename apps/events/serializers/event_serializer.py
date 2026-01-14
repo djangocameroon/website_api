@@ -7,23 +7,26 @@ from apps.events.serializers.speaker_serializer import SpeakerSerializer
 
 
 class EventSerializer(serializers.ModelSerializer):
-    speakers = serializers.SerializerMethodField()
-    tags = serializers.ListField(child=serializers.CharField(), required=False)
+    speakers_data = serializers.SerializerMethodField()
+    tags_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
-        exclude = ("active", "level",)
+        exclude = ("active", "level", "speakers", "tags")
 
     @extend_schema_field(OpenApiTypes.STR)
-    def get_speakers(self, event):
-        speakers = Speaker.objects.filter(id__in=event.speakers.values_list('id', flat=True))
-        return SpeakerSerializer(speakers, many=True).data
+    def get_speakers_data(self, event):
+        try:
+            return [SpeakerSerializer(speaker).data for speaker in event.speakers.all()]
+        except:
+            return []
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data['tags'] = [tag.name for tag in instance.tags.all()]
-        data['speakers'] = [SpeakerSerializer(speaker).data for speaker in instance.speakers.all()]
-        return data
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_tags_list(self, event):
+        try:
+            return [tag.name for tag in event.tags.all()]
+        except:
+            return []
 
 
 class CreateEventInputSerializer(serializers.ModelSerializer):
