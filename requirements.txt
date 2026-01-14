@@ -64,3 +64,5 @@ wcwidth==0.2.14
 whitenoise==6.6.0
 wrapt==1.16.0
 django-prometheus==2.3.1
+icalendar==6.0.1
+twilio==9.0.0

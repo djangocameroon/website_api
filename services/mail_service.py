@@ -68,7 +68,6 @@ class MailService:
         self.mail.send()
 
     def send_event_notification(self, user, event, site_url: str = "https://djangocameroon.org"):
-        """Send notification about a new event"""
         self.mail.subject = f"New Event: {event.title}"
         self.mail.body = render_to_string("mails/event_notification.html", context={
             "user": user,
@@ -77,6 +76,10 @@ class MailService:
         })
         self.mail.content_subtype = 'html'
         self.mail.to = [user.email]
+
+        filename, ics_content = event.get_calendar_ics()
+        self.mail.attach(filename, ics_content, 'text/calendar')
+
         self.mail.send()
 
     def send_event_cancelled(self, user, event, cancellation_reason: Optional[str] = None,
@@ -96,7 +99,6 @@ class MailService:
         self.mail.send()
 
     def send_event_reminder(self, user, event, site_url: str = "https://djangocameroon.org"):
-        """Send reminder about upcoming event"""
         self.mail.subject = f"Reminder: {event.title}"
         self.mail.body = render_to_string("mails/event_reminder.html", context={
             "user": user,
@@ -105,6 +107,10 @@ class MailService:
         })
         self.mail.content_subtype = 'html'
         self.mail.to = [user.email]
+
+        filename, ics_content = event.get_calendar_ics()
+        self.mail.attach(filename, ics_content, 'text/calendar')
+
         self.mail.send()
 
     def send_upcoming_events(self, user, events: List, site_url: str = "https://djangocameroon.org"):
@@ -121,7 +127,6 @@ class MailService:
 
     def send_registration_confirmation(self, user, event, registration,
                                       site_url: str = "https://djangocameroon.org"):
-        """Send confirmation email for event registration"""
         self.mail.subject = f"Registration Confirmed: {event.title}"
         self.mail.body = render_to_string("mails/registration_confirmation.html", context={
             "user": user,
@@ -131,6 +136,10 @@ class MailService:
         })
         self.mail.content_subtype = 'html'
         self.mail.to = [user.email]
+
+        filename, ics_content = event.get_calendar_ics()
+        self.mail.attach(filename, ics_content, 'text/calendar')
+
         self.mail.send()
 
     def send_new_location_login_alert(self, user, login_info: dict,

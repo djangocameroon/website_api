@@ -67,3 +67,25 @@ class UserMinSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("id", "email", "username", "profile_image", "gender")
+
+
+class SocialAccountSerializer(serializers.Serializer):
+    platform = serializers.CharField(source='platform.name')
+    link = serializers.URLField()
+
+
+class OrganizerSerializer(serializers.ModelSerializer):
+    social_accounts = SocialAccountSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "profile_image",
+            "bio",
+            "social_accounts"
+        ]

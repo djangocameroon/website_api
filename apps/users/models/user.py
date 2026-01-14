@@ -40,6 +40,19 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         default="Male",
     )
 
+    is_organizer = models.BooleanField(
+        default=False,
+        verbose_name=_("Is Organizer"),
+        help_text=_("Designates whether the user is an event organizer")
+    )
+
+    bio = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("Bio"),
+        help_text=_("Short biography or description of the user")
+    )
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
