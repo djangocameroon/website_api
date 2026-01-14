@@ -1,0 +1,5 @@
+Django Cameroon: New event is live.
+Event: {{ event_title }}
+Date/Time: {{ event_date }}
+Location: {{ event_location }}
+Open: {{ event_url }}

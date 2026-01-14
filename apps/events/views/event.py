@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication

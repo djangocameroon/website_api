@@ -1,0 +1,3 @@
+Django Cameroon: Upcoming events.
+{% for e in event_items %}- {{ e.title }} ({{ e.when }}): {{ e.url }}
+{% endfor %}More events: {{ site_url }}/events

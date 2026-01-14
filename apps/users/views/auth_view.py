@@ -14,7 +14,8 @@ from apps.users.serializers import (
     UserRegistrationSerializer, SuccessResponseSerializer,
     ErrorResponseSerializer, LoginSerializer,
     LoginResponseSerializer, UserSerializer,
-    PassWordResetRequestSerializer, PasswordResetConfirmationSerializer
+    PassWordResetRequestSerializer, PasswordResetConfirmationSerializer,
+    EmailVerificationSerializer
 )
 from mixins import APIResponseMixin
 from utils.auth import authenticate_user
@@ -216,4 +217,75 @@ class LogoutView(APIResponseMixin, APIView):
         return self.success(
             _("Logout successfully"),
             status.HTTP_205_RESET_CONTENT
+        )
+
+
+class EmailVerificationView(APIResponseMixin, APIView):
+    serializer_class = EmailVerificationSerializer
+    permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
+
+    @extend_schema(
+        operation_id="Verify Email",
+        summary="Verify email with OTP and activate account",
+        request=EmailVerificationSerializer,
+        tags=['Auth'],
+        responses={
+            200: OpenApiResponse(
+                response=SuccessResponseSerializer,
+                description=_("Email verified successfully. Your account is now active.")
+            ),
+            400: OpenApiResponse(
+                response=ErrorResponseSerializer,
+                description=_("Invalid or expired OTP")
+            ),
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        otp_code = serializer.validated_data['otp']
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return self.error(
+                _("User with this email does not exist"),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        if user.is_active:
+            return self.error(
+                _("Account is already active"),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        user_content_type = ContentType.objects.get_for_model(User)
+        otp_model = OtpCode.objects.filter(
+            otp_code=otp_code,
+            content_type=user_content_type,
+            object_id=user.pk
+        ).first()
+
+        if not otp_model:
+            return self.error(
+                _("Invalid OTP code"),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        if otp_model.has_expired():
+            otp_model.delete()
+            return self.error(
+                _("OTP has expired. Please request a new one."),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+        otp_model.delete()
+
+        return self.success(
+            _("Email verified successfully. Your account is now active."),
+            status_code=status.HTTP_200_OK
         )

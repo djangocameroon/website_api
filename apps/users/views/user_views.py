@@ -7,7 +7,7 @@ from rest_framework.mixins import UpdateModelMixin
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from apps.users.serializers import UserSerializer, SuccessResponseSerializer, ErrorResponseSerializer
+from apps.users.serializers import UserSerializer, SuccessResponseSerializer, ErrorResponseSerializer, OrganizerSerializer
 from mixins import APIResponseMixin
 
 User = get_user_model()
@@ -70,6 +70,31 @@ class UpdateUserProfile(APIResponseMixin, UpdateModelMixin, APIView):
 
         return self.success(
             message=_('User profile updated successfully'),
+            status_code=status.HTTP_200_OK,
+            data=serializer.data,
+        )
+
+
+class OrganizersListView(APIResponseMixin, APIView):
+    permission_classes = (permissions.AllowAny,)
+    parser_classes = [JSONParser]
+
+    @extend_schema(
+        operation_id="List organizers",
+        summary="Get list of all event organizers",
+        tags=["User"],
+        responses={
+            200: OpenApiResponse(
+                response=OrganizerSerializer(many=True),
+                description=_("Organizers retrieved successfully")
+            ),
+        }
+    )
+    def get(self, request):
+        organizers = User.objects.filter(is_organizer=True).prefetch_related('social_accounts__platform')
+        serializer = OrganizerSerializer(organizers, many=True)
+        return self.success(
+            message=_('Organizers retrieved successfully'),
             status_code=status.HTTP_200_OK,
             data=serializer.data,
         )

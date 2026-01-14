@@ -1,0 +1,41 @@
+{% extends "mails/base.html" %}
+
+{% block title %}Registration Confirmed: {{ event.title }}{% endblock %}
+{% block header %}Registration Confirmed{% endblock %}
+
+{% block content %}
+<h2>You're Registered!</h2>
+
+<p>Hello {{ user.first_name|default:user.username }},</p>
+
+<p>Great news! Your registration for the following event has been confirmed:</p>
+
+<div class="event-details">
+    <p><strong>Event:</strong> {{ event.title }}</p>
+    <p><strong>Date:</strong> {{ event.date|date:"l, F d, Y" }}</p>
+    <p><strong>Time:</strong> {{ event.date|time:"g:i A" }}</p>
+    <p><strong>Type:</strong> {{ event.get_type_display }}</p>
+    <p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city.name }}</p>
+    {% if registration.registration_code %}
+    <p><strong>Registration Code:</strong> {{ registration.registration_code }}</p>
+    {% endif %}
+</div>
+
+<div class="info-box">
+    <p><strong>What's next?</strong></p>
+    <ul>
+        <li>Add this event to your calendar</li>
+        <li>We'll send you a reminder before the event</li>
+        <li>Check your email for any updates</li>
+    </ul>
+</div>
+
+{% if event.type == 'VIRTUAL' %}
+<p><strong>Note:</strong> For virtual events, you will receive the meeting link 30 minutes before the event starts.</p>
+{% endif %}
+
+<a href="{{ site_url }}/events/{{ event.slug }}" class="button">View Event Details</a>
+
+<p>We're excited to see you at the event!</p>
+<p><strong>The Django Cameroon Team</strong></p>
+{% endblock %}

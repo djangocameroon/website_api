@@ -1,0 +1,38 @@
+{% extends "mails/base.html" %}
+
+{% block title %}Reminder: {{ event.title }}{% endblock %}
+{% block header %}Event Reminder{% endblock %}
+
+{% block content %}
+<h2>Don't Forget!</h2>
+
+<p>Hello {{ user.first_name|default:user.username }},</p>
+
+<p>This is a friendly reminder about the upcoming event you registered for:</p>
+
+<div class="event-details">
+    <p><strong>Event:</strong> {{ event.title }}</p>
+    <p><strong>Date:</strong> {{ event.date|date:"l, F d, Y" }}</p>
+    <p><strong>Time:</strong> {{ event.date|time:"g:i A" }}</p>
+    <p><strong>Type:</strong> {{ event.get_type_display }}</p>
+    <p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city.name }}</p>
+</div>
+
+<div class="info-box">
+    <p><strong>What to bring:</strong></p>
+    <ul>
+        <li>Your laptop (if it's a workshop)</li>
+        <li>Questions and enthusiasm!</li>
+        <li>Networking spirit</li>
+    </ul>
+</div>
+
+{% if event.type == 'VIRTUAL' %}
+<p><strong>Join Link:</strong> You will receive the virtual meeting link 30 minutes before the event starts.</p>
+{% endif %}
+
+<a href="{{ site_url }}/events/{{ event.slug }}" class="button">View Event Details</a>
+
+<p>We're looking forward to seeing you there!</p>
+<p><strong>The Django Cameroon Team</strong></p>
+{% endblock %}

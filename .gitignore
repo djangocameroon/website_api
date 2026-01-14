@@ -21,6 +21,9 @@ media/
 
 # Ignore log files
 *.log
+logs/
+log/
+.pids/
 
 # Ignore environment-specific settings
 .env

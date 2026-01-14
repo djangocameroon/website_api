@@ -1,0 +1,1 @@
+Hi {{ user_name }}, your Django Cameroon account is ready. Log in at djangocameroon.site to complete your profile and join upcoming events.

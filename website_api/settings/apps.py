@@ -41,12 +41,12 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost",
     "https://www.djangocameroon.site",
-    "https://djangocameroon.site",
+    "https://djangocameroon.org",
 ]
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost",
-    "https://djangocameroon.site",
+    "https://djangocameroon.org",
     "https://beta.djangocameroon.site",
     "https://www.djangocameroon.site",
 ]

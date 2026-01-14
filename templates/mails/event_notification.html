@@ -1,0 +1,32 @@
+{% extends "mails/base.html" %}
+
+{% block title %}New Event: {{ event.title }}{% endblock %}
+{% block header %}New Event Announcement{% endblock %}
+
+{% block content %}
+<h2>{{ event.title }}</h2>
+
+<p>Hello {{ user.first_name|default:user.username }},</p>
+
+<p>We're excited to announce a new event from Django Cameroon!</p>
+
+<div class="event-details">
+    <p><strong>Event:</strong> {{ event.title }}</p>
+    <p><strong>Date:</strong> {{ event.date|date:"l, F d, Y" }} at {{ event.date|time:"g:i A" }}</p>
+    <p><strong>Type:</strong> {{ event.get_type_display }}</p>
+    <p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city.name }}</p>
+    <p><strong>Category:</strong> {{ event.get_category_display }}</p>
+</div>
+
+<div class="info-box">
+    <p><strong>About this event:</strong></p>
+    <p>{{ event.description|truncatewords:50 }}</p>
+</div>
+
+<a href="{{ site_url }}/events/{{ event.slug }}" class="button">View Event Details & Register</a>
+
+<p>Don't miss out on this opportunity to learn and network with fellow developers!</p>
+
+<p>See you there!</p>
+<p><strong>The Django Cameroon Team</strong></p>
+{% endblock %}
