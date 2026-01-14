@@ -36,15 +36,19 @@ def add_tag_groups(result, generator, request, public):
     result['x-tagGroups'] = [
         {
             'name': 'User Management',
-            'tags': ['Auth', 'User', ]
+            'tags': ['Auth', 'User']
         },
         {
             'name': 'Event Management',
-            'tags': ['Reservations', 'Events', 'Speakers', "File Upload",]
+            'tags': ['Reservations', 'Events', 'Speakers', 'File Upload']
+        },
+        {
+            'name': 'Projects',
+            'tags': ['Projects']
         },
         {
             'name': 'Blog Management',
-            'tags': ['Blog', 'Posts', 'Comments', ]
+            'tags': ['Blog', 'Posts', 'Comments']
         }
     ]
     return result
