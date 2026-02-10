@@ -28,6 +28,7 @@ drf-spectacular==0.29.0
 drf-spectacular-sidecar==2024.7.1
 filelock==3.13.1
 gunicorn==21.2.0
+icalendar==6.0.1
 identify==2.5.33
 idna==3.6
 inflection==0.5.1
