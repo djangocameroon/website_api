@@ -4,10 +4,8 @@ from apps.users.models.base_model import BaseModel
 
 
 class LoginHistory(BaseModel):
-    """Track user login history for security monitoring"""
-
     user = models.ForeignKey(
-        'User',
+        'users.User',
         on_delete=models.CASCADE,
         related_name='login_history',
         verbose_name=_("User"),
@@ -90,23 +88,9 @@ class LoginHistory(BaseModel):
 
     @classmethod
     def is_new_login_location(cls, user, ip_address, country=None, city=None):
-        """
-        Check if this is a new login location for the user
-
-        Args:
-            user: User object
-            ip_address: IP address of current login
-            country: Country from geolocation (optional)
-            city: City from geolocation (optional)
-
-        Returns:
-            bool: True if this is a new location
-        """
-        # Check if user has logged in from this IP before
         if cls.objects.filter(user=user, ip_address=ip_address, login_successful=True).exists():
             return False
 
-        # If we have location data, check if user has logged in from this location
         if country:
             if cls.objects.filter(
                 user=user,
@@ -120,7 +104,6 @@ class LoginHistory(BaseModel):
 
     @classmethod
     def get_location_string(cls, country, city):
-        """Format location string for notifications"""
         if city and country:
             return f"{city}, {country}"
         elif country:

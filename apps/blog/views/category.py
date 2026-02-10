@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, permissions
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from apps.blog.models.category import Category
 from apps.blog.serializers.category_serializer import CategorySerializer
@@ -19,3 +19,8 @@ from apps.blog.serializers.category_serializer import CategorySerializer
 class CategoryListView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]

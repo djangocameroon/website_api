@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, permissions
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from apps.blog.models.tag import Tag
 from apps.blog.serializers.tag_serializer import TagSerializer
@@ -19,3 +19,8 @@ from apps.blog.serializers.tag_serializer import TagSerializer
 class TagListView(generics.ListCreateAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]

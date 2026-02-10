@@ -14,8 +14,8 @@ class PostList(generics.ListCreateAPIView):
 
     def get_permissions(self):
         if self.request.method == 'POST':
-            self.permission_classes = [permissions.IsAuthenticated]
-        return super().get_permissions()
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
 
     @extend_schema(
         summary="List blog posts",
@@ -38,6 +38,11 @@ class PostList(generics.ListCreateAPIView):
 
 class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Blog.objects.all()
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:

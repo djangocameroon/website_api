@@ -16,6 +16,10 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/hour",
+        "user": "1000/hour",
+    },
     "DEFAULT_PAGINATION_CLASS": "apps.users.pagination.CustomPagination",
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     "PAGE_SIZE": 100,
@@ -38,7 +42,7 @@ SPECTACULAR_SETTINGS = {
     'CONTACT': {
         'name': 'Django Cameroon',
         'url': 'https://djangocameroon.org',
-        'email': 'support@djangocameroon.site',
+        'email': 'support@djangocameroon.org',
     },
     'REDOC_SETTINGS': {
         'favicon': 'https://avatars.githubusercontent.com/u/142497557',

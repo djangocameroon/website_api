@@ -10,18 +10,18 @@ class SMSTemplates:
 
     @staticmethod
     def welcome(user_name: str) -> str:
-        return f"Welcome to Django Cameroon, {user_name}! We're excited to have you in our community. Visit djangocameroon.site to explore events."
+        return f"Welcome to Django Cameroon, {user_name}! We're excited to have you in our community. Visit djangocameroon.org to explore events."
 
     @staticmethod
     def signup_confirmation(user_name: str) -> str:
-        return f"Hi {user_name}, your Django Cameroon account is ready. Log in at djangocameroon.site to complete your profile and join upcoming events."
+        return f"Hi {user_name}, your Django Cameroon account is ready. Log in at djangocameroon.org to complete your profile and join upcoming events."
 
     @staticmethod
     def event_notification(event_title: str, event_date: str, event_location: str, event_url: Optional[str] = None) -> str:
         base = f"New Event: {event_title} on {event_date} at {event_location}."
         if event_url:
             return f"{base} {event_url}"
-        return f"{base} Register now at djangocameroon.site"
+        return f"{base} Register now at djangocameroon.org"
 
     @staticmethod
     def event_cancelled(event_title: str, event_date: str, event_url: Optional[str] = None) -> str:
@@ -68,7 +68,7 @@ class SMSTemplates:
         return f"Your Django Cameroon verification code is: {otp_code}. This code expires in 10 minutes."
 
     @staticmethod
-    def upcoming_events_digest(event_items: list[dict], site_url: str = "djangocameroon.site") -> str:
+    def upcoming_events_digest(event_items: list[dict], site_url: str = "djangocameroon.org") -> str:
         if not event_items:
             return f"Upcoming events: {site_url}/events"
 

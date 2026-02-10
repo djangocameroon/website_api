@@ -1,12 +1,13 @@
 import uuid
-from django.db import models
+from django.db import models, IntegrityError
 from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import now
 from apps.users.models.base_model import BaseModel
+
+MAX_CODE_RETRIES = 5
 
 
 class EventRegistration(BaseModel):
-    """Track user registrations for events"""
-
     event = models.ForeignKey(
         'Event',
         on_delete=models.CASCADE,
@@ -83,31 +84,32 @@ class EventRegistration(BaseModel):
 
     def save(self, *args, **kwargs):
         if not self.registration_code:
-            self.registration_code = self.generate_registration_code()
+            for _ in range(MAX_CODE_RETRIES):
+                self.registration_code = self.generate_registration_code()
+                try:
+                    super().save(*args, **kwargs)
+                    return
+                except IntegrityError:
+                    continue
+            raise IntegrityError("Failed to generate a unique registration code")
         super().save(*args, **kwargs)
 
     @staticmethod
     def generate_registration_code():
-        """Generate a unique registration code"""
         return f"REG-{uuid.uuid4().hex[:8].upper()}"
 
     def mark_as_attended(self):
-        """Mark this registration as attended"""
-        from django.utils.timezone import now
         self.status = 'attended'
         self.checked_in = True
         self.check_in_time = now()
         self.save()
 
     def cancel_registration(self):
-        """Cancel this registration"""
         self.status = 'cancelled'
         self.save()
 
 
 class EventAttendanceStats(BaseModel):
-    """Store attendance statistics for events"""
-
     event = models.OneToOneField(
         'Event',
         on_delete=models.CASCADE,
@@ -144,7 +146,6 @@ class EventAttendanceStats(BaseModel):
         return f"Stats for {self.event.title}"
 
     def update_stats(self):
-        """Update attendance statistics"""
         registrations = self.event.registrations.all()
         self.total_registered = registrations.filter(status='registered').count()
         self.total_attended = registrations.filter(status='attended').count()
@@ -154,7 +155,6 @@ class EventAttendanceStats(BaseModel):
 
     @property
     def attendance_rate(self):
-        """Calculate attendance rate"""
         total = self.total_registered + self.total_attended + self.total_no_show
         if total == 0:
             return 0

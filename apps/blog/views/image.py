@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, permissions
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from apps.blog.models.image import Image
 from apps.blog.serializers.image_serializer import ImageSerializer
@@ -21,6 +21,11 @@ class ImageListView(generics.ListCreateAPIView):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
 
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
 
 @extend_schema(
     summary="Upload image",
@@ -30,6 +35,7 @@ class ImageListView(generics.ListCreateAPIView):
 class ImageCreateView(generics.CreateAPIView):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         instance = serializer.save()

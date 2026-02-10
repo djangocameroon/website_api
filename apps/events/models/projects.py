@@ -1,7 +1,10 @@
 from django.db import models
+from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 
 from apps.users.models import BaseModel
+
+MAX_FEATURED_PROJECTS = 3
 
 
 class Project(BaseModel):
@@ -31,9 +34,17 @@ class Project(BaseModel):
 
     def save(self, *args, **kwargs):
         if self.is_featured:
-            featured_count = Project.objects.filter(is_featured=True).exclude(pk=self.pk).count()
-            if featured_count >= 3:
-                raise ValueError("Maximum of 3 featured projects allowed")
+            featured_count = (
+                Project.objects
+                .select_for_update()
+                .filter(is_featured=True)
+                .exclude(pk=self.pk)
+                .count()
+            )
+            if featured_count >= MAX_FEATURED_PROJECTS:
+                raise ValueError(
+                    f"Maximum of {MAX_FEATURED_PROJECTS} featured projects allowed"
+                )
         super().save(*args, **kwargs)
 
     class Meta:

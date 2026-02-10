@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, permissions
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from apps.blog.models.author import Author
 from apps.blog.serializers.author_serializer import AuthorSerializer
@@ -19,3 +19,8 @@ from apps.blog.serializers.author_serializer import AuthorSerializer
 class AuthorListView(generics.ListCreateAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
