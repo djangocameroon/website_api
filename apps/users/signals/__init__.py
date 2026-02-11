@@ -5,7 +5,11 @@ from django.contrib.auth.signals import user_logged_in
 from crequest.middleware import CrequestMiddleware
 
 from apps.users.models import LoginHistory, BaseModel
-from apps.users.tasks import send_new_location_login_alert_task, send_registration_otp_task
+from apps.users.tasks import (
+    send_new_location_login_alert_task,
+    send_registration_otp_task,
+    send_user_created_notifications_task,
+)
 
 User = get_user_model()
 
@@ -14,13 +18,11 @@ User = get_user_model()
 def send_otp_on_registration(sender, instance, created, **kwargs):
     if created:
         send_registration_otp_task.delay(instance.pk)
+        send_user_created_notifications_task.delay(instance.pk)
 
 
 @receiver(user_logged_in)
 def track_user_login(sender, request, user, **kwargs):
-    """
-    Track user login and detect new locations
-    """
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip_address = x_forwarded_for.split(',')[0]
@@ -86,16 +88,13 @@ def track_user_login(sender, request, user, **kwargs):
 
 @receiver(pre_save, sender=BaseModel)
 def update_user_id(sender, instance, **kwargs):
-    """
-    Signal to update the 'updated_by' and 'created_by' fields to the current user whenever a model instance is saved.
-    """
     try:
         request = CrequestMiddleware.get_request()
         if request and request.user.is_authenticated:
             user = request.user
         else:
             user = None
-    except Exception as e:
+    except Exception:
         user = None
 
     if not instance.created_by_id:

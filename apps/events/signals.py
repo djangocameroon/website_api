@@ -11,21 +11,10 @@ from apps.events.tasks import (
 User = get_user_model()
 
 
-@receiver(post_save, sender=Event)
-def notify_users_on_new_event(sender, instance, created, **kwargs):
-    """
-    Send notification to all users when a new event is published
-    """
-    if created and instance.published:
-        notify_users_on_new_event_task.delay(instance.pk)
-
-
 @receiver(pre_save, sender=Event)
-def detect_event_cancellation(sender, instance, **kwargs):
-    """
-    Detect when an event is being cancelled and notify registered users
-    """
-    if instance.pk:  # Event already exists
+def detect_event_publish_or_cancel(sender, instance, **kwargs):
+    instance._was_published = False
+    if instance.pk:
         try:
             old_event = Event.objects.get(pk=instance.pk)
             if old_event.published and not instance.published:
@@ -34,25 +23,27 @@ def detect_event_cancellation(sender, instance, **kwargs):
                     cancellation_reason="The event has been cancelled by the organizers.",
                     reschedule_info=None,
                 )
+            if not old_event.published and instance.published:
+                instance._was_published = True
         except Event.DoesNotExist:
             pass
 
 
+@receiver(post_save, sender=Event)
+def notify_users_on_new_event(sender, instance, created, **kwargs):
+    if instance.published and (created or getattr(instance, '_was_published', False)):
+        notify_users_on_new_event_task.delay(instance.pk)
+
+
 @receiver(post_save, sender=EventRegistration)
 def send_registration_confirmation(sender, instance, created, **kwargs):
-    """
-    Send confirmation email/SMS when user registers for an event
-    """
     if created and not instance.confirmation_sent:
         send_registration_confirmation_task.delay(instance.pk)
 
 
 @receiver(post_save, sender=EventRegistration)
 def update_event_stats(sender, instance, **kwargs):
-    """
-    Update event attendance statistics when registration changes
-    """
     from apps.events.models import EventAttendanceStats
 
-    stats, created = EventAttendanceStats.objects.get_or_create(event=instance.event)
+    stats, _ = EventAttendanceStats.objects.get_or_create(event=instance.event)
     stats.update_stats()

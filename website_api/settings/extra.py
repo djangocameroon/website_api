@@ -106,11 +106,25 @@ else:
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Celery settings
+from celery.schedules import crontab
+
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+CELERY_BEAT_SCHEDULE = {
+    'send-event-reminders-daily': {
+        'task': 'apps.events.tasks.send_event_reminders_task',
+        'schedule': crontab(hour=9, minute=0),
+        'kwargs': {'hours': 24, 'send_sms': False},
+    },
+    'send-monthly-events-digest': {
+        'task': 'apps.events.tasks.send_monthly_digest_task',
+        'schedule': crontab(day_of_month=1, hour=10, minute=0),
+        'kwargs': {'days': 30, 'send_sms': False},
+    },
+}
 
 # Django Debug ToolBar settings
 if os.getenv("ENVIRONMENT") == "development":
