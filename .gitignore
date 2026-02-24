@@ -36,3 +36,6 @@ log/
 
 # Ignore local development settings
 local_settings.py
+
+# Celery beat scheduler database file
+celerybeat-schedule
