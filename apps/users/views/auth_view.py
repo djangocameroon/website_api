@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from oauth2_provider.models import AccessToken
@@ -7,6 +8,7 @@ from rest_framework import permissions
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
+from rest_framework.throttling import ScopedRateThrottle
 
 from apps.users.helpers.auth import generate_tokens, get_serializer
 from apps.users.models import OtpCode
@@ -15,7 +17,7 @@ from apps.users.serializers import (
     ErrorResponseSerializer, LoginSerializer,
     LoginResponseSerializer, UserSerializer,
     PassWordResetRequestSerializer, PasswordResetConfirmationSerializer,
-    EmailVerificationSerializer
+    EmailVerificationSerializer, ResendEmailVerificationSerializer
 )
 from mixins import APIResponseMixin
 from utils.auth import authenticate_user
@@ -287,5 +289,57 @@ class EmailVerificationView(APIResponseMixin, APIView):
 
         return self.success(
             _("Email verified successfully. Your account is now active."),
+            status_code=status.HTTP_200_OK
+        )
+
+class ResendEmailVerificationView(APIResponseMixin, APIView):
+    serializer_class = ResendEmailVerificationSerializer
+    permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser]
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "resend_verification"
+
+    @extend_schema(
+        operation_id="Resend Email Verification",
+        summary="Resend email verification OTP",
+        request=ResendEmailVerificationSerializer,
+        tags=['Auth'],
+        responses={
+            200: OpenApiResponse(
+                response=SuccessResponseSerializer,
+                description=_("If an account with that email exists, a verification code has been sent")
+            ),
+            400: OpenApiResponse(
+                response=ErrorResponseSerializer,
+                description=_("Bad request")
+            ),
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
+        with transaction.atomic():
+            user = User.objects.select_for_update().filter(email=email).first()
+        if not user:
+            # To not reveal if email exists
+            return self.success(
+                _("If an account with that email exists, a verification code has been sent"),
+                status_code=status.HTTP_200_OK
+            )
+
+        if user.is_active:
+            return self.error(
+                _("Account is already active"),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.clear_email_verification_otps()
+        user.send_email_otp()
+
+        return self.success(
+            _("If an account with that email exists, a verification code has been sent"),
             status_code=status.HTTP_200_OK
         )
