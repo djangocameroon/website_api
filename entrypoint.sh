@@ -17,13 +17,13 @@ echo "Redis started"
 # Only run migrations if RUN_MIGRATIONS is set to true
 if [ "$RUN_MIGRATIONS" = "true" ]; then
   echo "Running database migrations..."
-  python manage.py migrate --noinput
+  uv run python manage.py migrate --noinput
 
   echo "Collecting static files..."
-  python manage.py collectstatic --noinput
+  uv run python manage.py collectstatic --noinput
 
   echo "Creating superuser if it doesn't exist..."
-  python manage.py shell << END
+  uv run python manage.py shell << END
 from django.contrib.auth import get_user_model
 User = get_user_model()
 if not User.objects.filter(email='admin@djangocameroon.com').exists():
