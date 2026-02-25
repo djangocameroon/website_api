@@ -19,6 +19,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
+        "resend_verification": "3/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "apps.users.pagination.CustomPagination",
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
