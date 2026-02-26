@@ -2,28 +2,28 @@
 
 set -e
 
-echo "Waiting for PostgreSQL..."
-while ! nc -z postgres 5432; do
-  sleep 0.1
-done
-echo "PostgreSQL started"
+# echo "Waiting for PostgreSQL..."
+# while ! nc -z postgres 5432; do
+#   sleep 0.1
+# done
+# echo "PostgreSQL started"
 
-echo "Waiting for Redis..."
-while ! nc -z redis 6379; do
-  sleep 0.1
-done
-echo "Redis started"
+# echo "Waiting for Redis..."
+# while ! nc -z redis 6379; do
+#   sleep 0.1
+# done
+# echo "Redis started"
 
 # Only run migrations if RUN_MIGRATIONS is set to true
 if [ "$RUN_MIGRATIONS" = "true" ]; then
   echo "Running database migrations..."
-  uv run python manage.py migrate --noinput
+  python manage.py migrate --noinput
 
   echo "Collecting static files..."
-  uv run python manage.py collectstatic --noinput
+  python manage.py collectstatic --noinput
 
   echo "Creating superuser if it doesn't exist..."
-  uv run python manage.py shell << END
+  python manage.py shell << END
 from django.contrib.auth import get_user_model
 User = get_user_model()
 if not User.objects.filter(email='admin@djangocameroon.com').exists():
@@ -34,4 +34,4 @@ else:
 END
 fi
 
-exec "$@"
+exec uv run gunicorn website_api.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120

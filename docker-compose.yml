@@ -39,7 +39,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: gunicorn website_api.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120
+    command: uv run gunicorn website_api.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -71,7 +71,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A website_api worker --loglevel=info --concurrency=2
+    command: uv run celery -A website_api worker --loglevel=info --concurrency=2
     volumes:
       - .:/app
     environment:
@@ -97,7 +97,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A website_api beat --loglevel=info
+    command: uv run celery -A website_api beat --loglevel=info
     volumes:
       - .:/app
     environment:
