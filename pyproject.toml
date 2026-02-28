@@ -24,6 +24,7 @@ dependencies = [
     "deprecated==1.2.14",
     "distlib==0.3.8",
     "django==5.0.1",
+    "django-celery-beat>=2.5.0",
     "django-cors-headers==4.3.1",
     "django-crequest==2018.5.11",
     "django-debug-toolbar==4.4.6",
