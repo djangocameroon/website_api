@@ -64,6 +64,9 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         send_email_otp_task.delay(self.pk)
         return None
 
+    def clear_email_verification_otps(self) -> None:
+        self.otp_codes.all().delete()
+
     class Meta:
         db_table = "users"
         verbose_name = _("User")

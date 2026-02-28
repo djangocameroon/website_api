@@ -4,6 +4,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
+from website_api.health import health_check
+
 from .swagger import urlpatterns as swagger_urlpatterns
 
 BASE_API_URL = "api/v1"
@@ -11,6 +13,7 @@ BASE_API_URL = "api/v1"
 
 urlpatterns = (
     [
+        path("health/", health_check, name="health-check"),
         path("admin/", admin.site.urls),
         path('__debug__/', include(debug_toolbar.urls)),
         path('', include('django_prometheus.urls')),

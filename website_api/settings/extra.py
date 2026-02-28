@@ -16,6 +16,11 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/hour",
+        "user": "1000/hour",
+        "resend_verification": "3/hour",
+    },
     "DEFAULT_PAGINATION_CLASS": "apps.users.pagination.CustomPagination",
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     "PAGE_SIZE": 100,
@@ -38,7 +43,7 @@ SPECTACULAR_SETTINGS = {
     'CONTACT': {
         'name': 'Django Cameroon',
         'url': 'https://djangocameroon.org',
-        'email': 'support@djangocameroon.site',
+        'email': 'support@djangocameroon.org',
     },
     'REDOC_SETTINGS': {
         'favicon': 'https://avatars.githubusercontent.com/u/142497557',
@@ -74,13 +79,24 @@ if os.getenv("ENVIRONMENT") == "production":
     USE_X_FORWARDED_HOST = True
     USE_X_FORWARDED_PORT = True
 
-# AWS S3 settings
-if os.getenv("ENVIRONMENT") == "production":
+# ---------------------------------------------------------------------------
+# Storage: toggle between local (WhiteNoise) and S3/MinIO via env var
+# ---------------------------------------------------------------------------
+USE_S3_STORAGE = os.getenv('USE_S3_STORAGE', 'false').lower() == 'true'
+
+if USE_S3_STORAGE:
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+
+    # Convert empty strings to None so boto3 falls back to defaults
+    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME') or None
+    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL') or None
+
+    AWS_S3_CUSTOM_DOMAIN = os.getenv(
+        'AWS_S3_CUSTOM_DOMAIN',
+        f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com' if AWS_STORAGE_BUCKET_NAME else '',
+    )
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
@@ -102,11 +118,43 @@ else:
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Celery settings
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
+# ---------------------------------------------------------------------------
+# Redis cache — uses REDIS_URL, falls back to CELERY_BROKER_URL
+# ---------------------------------------------------------------------------
+REDIS_URL = os.getenv('REDIS_URL') or os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': REDIS_URL,
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Celery
+# ---------------------------------------------------------------------------
+from celery.schedules import crontab
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', REDIS_URL)
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', REDIS_URL)
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+CELERY_BEAT_SCHEDULE = {
+    'send-event-reminders-daily': {
+        'task': 'apps.events.tasks.send_event_reminders_task',
+        'schedule': crontab(hour=9, minute=0),
+        'kwargs': {'hours': 24, 'send_sms': False},
+    },
+    'send-monthly-events-digest': {
+        'task': 'apps.events.tasks.send_monthly_digest_task',
+        'schedule': crontab(day_of_month=1, hour=10, minute=0),
+        'kwargs': {'days': 30, 'send_sms': False},
+    },
+}
+
+# django-celery-beat (DatabaseScheduler for beat container)
+INSTALLED_APPS += ['django_celery_beat']
 
 # Django Debug ToolBar settings
 if os.getenv("ENVIRONMENT") == "development":

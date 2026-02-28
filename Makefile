@@ -4,7 +4,7 @@ UV ?= uv run
 PY ?= $(UV) python
 CELERY ?= $(UV) celery
 
-HOST ?= 127.0.0.1
+HOST ?= localhost
 PORT ?= 8912
 RUNSERVER ?= $(HOST):$(PORT)
 

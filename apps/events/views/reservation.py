@@ -1,4 +1,5 @@
-from django.utils.translation import gettext_lazy as _
+from django.db.models import Count, Q
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import status, serializers
@@ -13,6 +14,7 @@ from apps.events.serializers.reservation_serializer import (
     CreateReservationSerializer,
     ReservationSerializer,
 )
+from apps.events.tasks import send_reservation_confirmation_task
 from mixins.api_response_mixin import APIResponseMixin
 
 
@@ -30,9 +32,6 @@ class ReservationViewSet(ModelViewSet, APIResponseMixin):
         return ReservationSerializer
 
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
         if self.action in ["list", "retrieve"]:
             permission_classes = [AllowAny]
         else:
@@ -90,7 +89,7 @@ class ReservationViewSet(ModelViewSet, APIResponseMixin):
         responses={
             201: OpenApiResponse(
                 response=ReservationSerializer,
-                description=_("Reservation created successfully")
+                description="Reservation created successfully"
             )
         },
     )
@@ -103,7 +102,7 @@ class ReservationViewSet(ModelViewSet, APIResponseMixin):
             serializer.is_valid(raise_exception=True)
             reservation = Reservation.objects.create(**serializer.validated_data)
 
-            # TODO: Implement the send_email function to send an email to the user
+            send_reservation_confirmation_task.delay(str(reservation.pk))
 
             return self.success(
                 message=_("Reservation created successfully"),
@@ -124,15 +123,13 @@ class ReservationViewSet(ModelViewSet, APIResponseMixin):
         tags=["Reservations"],
         responses={
             200: OpenApiResponse(
-                description=_("Reservation checked in successfully")
+                description="Reservation checked in successfully"
             )
         },
     )
     @action(detail=False, methods=["POST"], permission_classes=[IsAuthenticated])
-    def check_in(self, reservation_id: str) -> Response:
-        """
-        Check in a reservation.
-        """
+    def check_in(self, request) -> Response:
+        reservation_id = request.data.get("reservation_id")
         try:
             existing_reservation = Reservation.objects.get(id=reservation_id)
         except Reservation.DoesNotExist:
@@ -145,8 +142,6 @@ class ReservationViewSet(ModelViewSet, APIResponseMixin):
             status_code=status.HTTP_200_OK,
         )
 
-    # TODO: Maybe Implement the get_reservations_stats function
-
     @extend_schema(
         summary="Get reservation statistics",
         operation_id="get_reservations_statistics",
@@ -154,8 +149,14 @@ class ReservationViewSet(ModelViewSet, APIResponseMixin):
         tags=["Reservations"],
     )
     @action(detail=False, methods=["GET"], permission_classes=[IsAuthenticated])
-    def get_reservations_statistics(self) -> Response:
-        """
-        Get reservation statistics.
-        """
-        pass
+    def get_reservations_statistics(self, request) -> Response:
+        stats = Reservation.objects.aggregate(
+            total=Count("id"),
+            checked_in=Count("id", filter=Q(check_in=True)),
+            not_checked_in=Count("id", filter=Q(check_in=False)),
+        )
+        return self.success(
+            message=_("Reservation statistics retrieved successfully"),
+            status_code=status.HTTP_200_OK,
+            data=stats,
+        )

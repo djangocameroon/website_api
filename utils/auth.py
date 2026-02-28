@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
 from django.db.models import Q
 
+from rest_framework.exceptions import PermissionDenied
+
 User = get_user_model()
 
 
@@ -10,7 +12,7 @@ def authenticate_user(self, data):
         user = User.objects.get(Q(username=data['email_or_username']) | Q(email=data['email_or_username']))
         if user and user.check_password(data['password']):
             if not user.is_active:
-                raise ValueError("Account is not active. Please verify your email to activate your account.")
+                raise PermissionDenied("Account is not active. Please verify your email to activate your account.")
             return user
         return None
     except User.DoesNotExist:

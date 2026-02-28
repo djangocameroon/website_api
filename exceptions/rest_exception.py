@@ -37,6 +37,9 @@ def _handle_drf_exception(exc, response):
         return response
 
     errors = _extract_errors_from_response(response)
+    if isinstance(exc, (DjangoValidationError, DRFValidationError)):
+        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+    
     response.data = {
         "status": False,
         "message": _('Validation error.') if isinstance(exc, (DjangoValidationError, DRFValidationError)) else _(

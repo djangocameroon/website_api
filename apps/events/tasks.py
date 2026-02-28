@@ -4,7 +4,7 @@ from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now, timedelta
 
-from apps.events.models import Event, EventRegistration
+from apps.events.models import Event, EventRegistration, Reservation
 from services import NotificationService
 from services.notification_preferences import get_notification_preferences
 
@@ -95,6 +95,30 @@ def send_registration_confirmation_task(registration_id: int) -> None:
         registration.save(update_fields=['confirmation_sent'])
     except Exception:
         logger.exception("Error sending registration confirmation for EventRegistration id=%s", registration_id)
+
+
+@shared_task
+def send_reservation_confirmation_task(reservation_id) -> None:
+    try:
+        reservation = Reservation.objects.select_related('user', 'for_event').get(pk=reservation_id)
+    except Reservation.DoesNotExist:
+        return
+
+    try:
+        service = NotificationService()
+        service.mail_service.send_mail(
+            subject=f"Reservation Confirmed: {reservation.for_event.title}",
+            message="mails/registration_confirmation.html",
+            to=[reservation.user.email],
+            context={
+                "user": reservation.user,
+                "event": reservation.for_event,
+                "registration": reservation,
+                "site_url": service.site_url,
+            },
+        )
+    except Exception:
+        logger.exception("Error sending reservation confirmation for id=%s", reservation_id)
 
 
 @shared_task
