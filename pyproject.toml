@@ -11,6 +11,7 @@ dependencies = [
     "attrs==25.4.0",
     "beautifulsoup4==4.14.3",
     "billiard==4.2.4",
+    "boto3>=1.42.59",
     "celery==5.3.6",
     "certifi==2023.11.17",
     "cffi==1.16.0",
