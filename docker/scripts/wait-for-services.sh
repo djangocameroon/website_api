@@ -1,21 +1,9 @@
 #!/bin/sh
 set -e
 
-# ---------------------------------------------------------------------------
-# wait-for-services.sh — TCP-check Postgres and Redis before app startup
-#
-# Env vars used:
-#   DB_HOST / DB_PORT              — Postgres connection (required)
-#   REDIS_HOST / REDIS_PORT        — explicit Redis address (optional)
-#   REDIS_URL or CELERY_BROKER_URL — parsed with Python if REDIS_HOST unset
-#   WAIT_RETRIES                   — max attempts  (default 30)
-#   WAIT_INTERVAL                  — seconds between attempts (default 2)
-# ---------------------------------------------------------------------------
-
 RETRIES=${WAIT_RETRIES:-30}
 INTERVAL=${WAIT_INTERVAL:-2}
 
-# ---------- Resolve Redis host/port from URL if not explicitly set ----------
 if [ -z "$REDIS_HOST" ]; then
     REDIS_URL_TO_PARSE="${REDIS_URL:-$CELERY_BROKER_URL}"
     if [ -n "$REDIS_URL_TO_PARSE" ]; then
@@ -36,11 +24,9 @@ print(u.port or 6379)
 fi
 REDIS_PORT=${REDIS_PORT:-6379}
 
-# ---------- Resolve Postgres ----------
 PG_HOST=${DB_HOST:-localhost}
 PG_PORT=${DB_PORT:-5432}
 
-# ---------- TCP check helper ----------
 wait_for() {
     SERVICE=$1
     HOST=$2
@@ -72,7 +58,6 @@ except Exception:
     exit 1
 }
 
-# ---------- Run checks ----------
 wait_for "PostgreSQL" "$PG_HOST" "$PG_PORT"
 wait_for "Redis"      "$REDIS_HOST" "$REDIS_PORT"
 

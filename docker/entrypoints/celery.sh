@@ -4,7 +4,6 @@ set -e
 echo "[celery] Waiting for external services..."
 /wait-for-services.sh
 
-# Celery worker configuration via environment variables
 CONCURRENCY=${CELERY_CONCURRENCY:-2}
 LOG_LEVEL=${CELERY_LOG_LEVEL:-info}
 QUEUES=${CELERY_QUEUES:-celery}

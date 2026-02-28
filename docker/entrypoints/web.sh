@@ -10,7 +10,6 @@ python manage.py migrate --noinput
 echo "[web] Collecting static files..."
 python manage.py collectstatic --noinput
 
-# Optional: create superuser from env vars (only when explicitly requested)
 if [ "$CREATE_SUPERUSER" = "true" ]; then
     echo "[web] Creating superuser if not exists..."
     python manage.py shell <<END
@@ -28,7 +27,6 @@ else:
 END
 fi
 
-# Gunicorn configuration via environment variables
 WORKERS=${GUNICORN_WORKERS:-4}
 THREADS=${GUNICORN_THREADS:-2}
 TIMEOUT=${GUNICORN_TIMEOUT:-120}
