@@ -67,6 +67,10 @@ class LoginSerializer(serializers.Serializer):
         required=True, write_only=True,
         help_text=_('Enter your password')
     )
+    remember_me = serializers.BooleanField(
+        required=False, default=False,
+        help_text=_('Keep me logged in for 45 days')
+    )
 
 
 class LoginResponseSerializer(serializers.Serializer):

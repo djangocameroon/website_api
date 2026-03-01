@@ -77,6 +77,7 @@ class LoginView(APIResponseMixin, APIView):
         serializer = get_serializer(self, data=request.data)
         serializer.is_valid(raise_exception=True)
         user = authenticate_user(self, serializer.validated_data)
+        remember_me = serializer.validated_data.get('remember_me', False)
 
         if not user:
             return self.error(
@@ -84,7 +85,7 @@ class LoginView(APIResponseMixin, APIView):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        tokens = generate_tokens(self, user)
+        tokens = generate_tokens(self, user, remember=remember_me)
         response_data = {
             "access_token": tokens['access_token'].token,
             "refresh_token": tokens['refresh_token'].token,
