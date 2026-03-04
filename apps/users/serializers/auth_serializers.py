@@ -113,7 +113,13 @@ class EmailVerificationSerializer(serializers.Serializer):
         max_length=6,
         min_length=6,
         help_text=_('6-digit OTP code sent to your email')
-    )
+    )    
+    
+    def validate_email(self, value):
+        return value.strip().lower()
 
 class ResendEmailVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
+    
+    def validate_email(self, value):
+        return value.strip().lower()

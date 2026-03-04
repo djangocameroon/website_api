@@ -12,8 +12,9 @@ class Blog(BaseModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey('users.User', on_delete=models.CASCADE)
-    read_time = models.IntegerField(default=0)
-    views = models.IntegerField(default=0)
+    read_time = models.PositiveIntegerField(default=0)
+    likes = models.PositiveIntegerField(default=0)
+    views = models.PositiveIntegerField(default=0)
     tags = models.ManyToManyField(
         BlogTag, related_name="blogs", default=None,
         verbose_name=_("Blog tags"), help_text=_("The tags for the blog"),)
