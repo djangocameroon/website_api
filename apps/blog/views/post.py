@@ -1,6 +1,12 @@
+from uuid import UUID
 from rest_framework import generics, permissions
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.openapi import OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 from django.utils.translation import gettext_lazy as _
+from django.http import Http404
+from django.db.models import Q
+from apps.blog.errors import BlogNotFoundErrorResponse
 from apps.blog.models.blog import Blog
 from apps.blog.serializers.blog_serializer import BlogCreateUpdateResponseSerializer, BlogSerializer, BlogCreateUpdateSerializer
 from apps.users.serializers.general_serializers import ErrorResponseSerializer
@@ -64,11 +70,45 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
             return BlogCreateUpdateSerializer
         return BlogSerializer
 
+    def get_object(self):
+        lookup_field = self.kwargs.get('pk')
+        query = Q(slug=lookup_field)
+    
+        try:
+            UUID(lookup_field)
+            query |= Q(id=lookup_field)
+        except ValueError:
+            pass
+
+        try:
+            obj = Blog.objects.get(query)
+        except Blog.DoesNotExist:
+            raise Http404
+        return obj
+
     @extend_schema(
         summary="Get blog post",
         description="Retrieve a blog post",
         tags=["Blog"],
-        responses={200: BlogSerializer}
+        responses={
+            200: OpenApiResponse(
+                response=BlogSerializer, 
+                description=_("Blog post retrieved successfully")
+            ),
+            404: OpenApiResponse(
+                response=BlogNotFoundErrorResponse,
+                description=_("Blog post not found")
+            ),
+        },
+        parameters=[
+            OpenApiParameter(
+                    name='id',
+                    location=OpenApiParameter.PATH,
+                    description='id or slug of the blog post',
+                    required=True,
+                    type=OpenApiTypes.STR,
+                )
+            ]
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
