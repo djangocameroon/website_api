@@ -27,27 +27,32 @@ else:
 END
 fi
 
-WORKERS=${GUNICORN_WORKERS:-4}
-THREADS=${GUNICORN_THREADS:-2}
-TIMEOUT=${GUNICORN_TIMEOUT:-120}
-GRACEFUL_TIMEOUT=${GUNICORN_GRACEFUL_TIMEOUT:-30}
-KEEP_ALIVE=${GUNICORN_KEEP_ALIVE:-5}
-MAX_REQUESTS=${GUNICORN_MAX_REQUESTS:-1000}
-MAX_REQUESTS_JITTER=${GUNICORN_MAX_REQUESTS_JITTER:-50}
-BIND=${GUNICORN_BIND:-0.0.0.0:8000}
-LOG_LEVEL=${GUNICORN_LOG_LEVEL:-info}
+if [ "$1" = "gunicorn" ]; then
+    WORKERS=${GUNICORN_WORKERS:-4}
+    THREADS=${GUNICORN_THREADS:-2}
+    TIMEOUT=${GUNICORN_TIMEOUT:-120}
+    MODULE=${GUNICORN_MODULE:-website_api.wsgi:application}
+    GRACEFUL_TIMEOUT=${GUNICORN_GRACEFUL_TIMEOUT:-30}
+    KEEP_ALIVE=${GUNICORN_KEEP_ALIVE:-5}
+    MAX_REQUESTS=${GUNICORN_MAX_REQUESTS:-1000}
+    MAX_REQUESTS_JITTER=${GUNICORN_MAX_REQUESTS_JITTER:-50}
+    BIND=${GUNICORN_BIND:-0.0.0.0:8000}
+    LOG_LEVEL=${GUNICORN_LOG_LEVEL:-info}
 
-echo "[web] Starting Gunicorn (workers=$WORKERS, threads=$THREADS)..."
-exec gunicorn website_api.wsgi:application \
-    --bind "$BIND" \
-    --workers "$WORKERS" \
-    --threads "$THREADS" \
-    --worker-class gthread \
-    --timeout "$TIMEOUT" \
-    --graceful-timeout "$GRACEFUL_TIMEOUT" \
-    --keep-alive "$KEEP_ALIVE" \
-    --max-requests "$MAX_REQUESTS" \
-    --max-requests-jitter "$MAX_REQUESTS_JITTER" \
-    --log-level "$LOG_LEVEL" \
-    --access-logfile - \
-    --error-logfile -
+    echo "[web] Starting Gunicorn (module=$MODULE, workers=$WORKERS, threads=$THREADS)..."
+    exec gunicorn "$MODULE" \
+        --bind "$BIND" \
+        --workers "$WORKERS" \
+        --threads "$THREADS" \
+        --worker-class gthread \
+        --timeout "$TIMEOUT" \
+        --graceful-timeout "$GRACEFUL_TIMEOUT" \
+        --keep-alive "$KEEP_ALIVE" \
+        --max-requests "$MAX_REQUESTS" \
+        --max-requests-jitter "$MAX_REQUESTS_JITTER" \
+        --log-level "$LOG_LEVEL" \
+        --access-logfile - \
+        --error-logfile -
+fi
+
+exec "$@"
