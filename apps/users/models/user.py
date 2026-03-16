@@ -67,6 +67,11 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     def clear_email_verification_otps(self) -> None:
         self.otp_codes.all().delete()
 
+    def save(self, *args, **kwargs):
+        if self.email:
+            self.email = self.email.strip().lower()
+        super().save(*args, **kwargs)
+
     class Meta:
         db_table = "users"
         verbose_name = _("User")
