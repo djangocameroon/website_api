@@ -80,14 +80,26 @@ if os.getenv("ENVIRONMENT") == "production":
     USE_X_FORWARDED_PORT = True
 
 # ---------------------------------------------------------------------------
-# Storage: S3/MinIO in production (DEBUG=False), WhiteNoise in development
+# Static files: always served via WhiteNoise
 # ---------------------------------------------------------------------------
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_MAX_AGE = 0 if DEBUG else 31536000
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ---------------------------------------------------------------------------
+# Media files: S3/MinIO in production (DEBUG=False), local in development
+# ---------------------------------------------------------------------------
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 if not DEBUG:
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 
-    # Convert empty strings to None so boto3 falls back to defaults
     AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME') or None
     AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL') or None
 
@@ -98,23 +110,10 @@ if not DEBUG:
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
-    AWS_LOCATION = 'static'
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 else:
-    WHITENOISE_USE_FINDERS = True
-    WHITENOISE_AUTOREFRESH = False
-    WHITENOISE_MAX_AGE = 31536000
-
     MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-    STATIC_URL = '/static/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ---------------------------------------------------------------------------
 # Redis cache — uses REDIS_URL, falls back to CELERY_BROKER_URL
