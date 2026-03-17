@@ -1,7 +1,7 @@
 import os
 
 from utils.main import load_documentation
-from .base import BASE_DIR, TIME_ZONE, INSTALLED_APPS, MIDDLEWARE
+from .base import BASE_DIR, DEBUG, TIME_ZONE, INSTALLED_APPS, MIDDLEWARE
 
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "exceptions.rest_exception.rest_exception_handler",
@@ -80,11 +80,9 @@ if os.getenv("ENVIRONMENT") == "production":
     USE_X_FORWARDED_PORT = True
 
 # ---------------------------------------------------------------------------
-# Storage: toggle between local (WhiteNoise) and S3/MinIO via env var
+# Storage: S3/MinIO in production (DEBUG=False), WhiteNoise in development
 # ---------------------------------------------------------------------------
-USE_S3_STORAGE = os.getenv('USE_S3_STORAGE', 'false').lower() == 'true'
-
-if USE_S3_STORAGE:
+if not DEBUG:
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
