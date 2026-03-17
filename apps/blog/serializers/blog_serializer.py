@@ -21,7 +21,7 @@ class BlogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Blog
-        exclude = ['id', 'active', 'updated_at', 'created_by', 'updated_by']
+        exclude = ['active', 'updated_at', 'created_by', 'updated_by']
 
 class BlogCreateUpdateSerializer(serializers.ModelSerializer):
     cover_image = serializers.URLField(required=False, allow_blank=True)
