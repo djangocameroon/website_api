@@ -11,12 +11,15 @@ from apps.blog.serializers.image_serializer import ImageSerializer
 
 
 class BlogSerializer(serializers.ModelSerializer):
-    author = AuthorSerializer(read_only=True, only_fields=['username'])
+    author = AuthorSerializer(read_only=True, only_fields=['username'], allow_null=True)
+    views = serializers.IntegerField(read_only=True)
     
     def to_representation(self, instance):
         rep = super().to_representation(instance)
         rep['slug'] = f"/{instance.slug}"
         rep['tags'] = list(instance.tags.values_list('name', flat=True))
+        if instance.author is None:
+            rep['author'] = None
         return rep
 
     class Meta:

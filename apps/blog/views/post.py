@@ -9,6 +9,7 @@ from django.db.models import Q
 from apps.blog.errors import BlogNotFoundErrorResponse
 from apps.blog.models.blog import Blog
 from apps.blog.serializers.blog_serializer import BlogCreateUpdateResponseSerializer, BlogSerializer, BlogCreateUpdateSerializer
+from apps.blog.services.blog_views import BlogViewService
 from apps.users.serializers.general_serializers import ErrorResponseSerializer
 
 
@@ -141,3 +142,13 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
+
+class PostDetailView(generics.RetrieveAPIView):
+    queryset = Blog.objects.all()
+    permission_classes = [permissions.AllowAny]
+    serializer_class = BlogSerializer
+
+    def get(self, request, *args, **kwargs):
+        blog = self.get_object()
+        BlogViewService.track(request, blog)
+        return super().get(request, *args, **kwargs)
