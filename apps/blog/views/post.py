@@ -1,5 +1,8 @@
 from uuid import UUID
-from rest_framework import generics, permissions
+from django.shortcuts import get_object_or_404
+from rest_framework import generics, permissions, status
+from rest_framework.views import APIView
+from rest_framework.parsers import JSONParser
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from drf_spectacular.openapi import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
@@ -9,9 +12,11 @@ from django.db.models import Q
 from apps.blog.errors import BlogNotFoundErrorResponse
 from apps.blog.models.blog import Blog
 from apps.blog.serializers.blog_serializer import BlogCreateUpdateResponseSerializer, BlogSerializer, BlogCreateUpdateSerializer
+from apps.blog.services.blog_likes import BlogLikeService
 from apps.blog.services.blog_views import BlogViewService
 from apps.users.serializers.general_serializers import ErrorResponseSerializer
 
+from mixins import APIResponseMixin
 
 class PostList(generics.ListCreateAPIView):
     queryset = Blog.objects.all()
@@ -152,3 +157,16 @@ class PostDetailView(generics.RetrieveAPIView):
         blog = self.get_object()
         BlogViewService.track(request, blog)
         return super().get(request, *args, **kwargs)
+
+class PostLikeToggleView(APIResponseMixin, APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser]
+
+    def post(self, request, pk):
+        blog = get_object_or_404(Blog, pk=pk)
+        result = BlogLikeService.toggle(blog, request.user)
+        return self.success(
+            _("Blog like toggled successfully"),
+            result,
+            status.HTTP_200_OK   
+        )

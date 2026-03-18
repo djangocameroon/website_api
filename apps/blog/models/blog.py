@@ -40,3 +40,14 @@ class BlogView(models.Model):
             models.Index(fields=['blog', 'user']),
         ]
 
+class BlogLike(models.Model):
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name='blog_likes')
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='liked_blogs')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [['blog', 'user']]  # one like per user per blog
+        indexes = [
+            models.Index(fields=['blog', 'user']),
+        ]
+

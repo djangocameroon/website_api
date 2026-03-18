@@ -1,5 +1,5 @@
 from django.urls import path
-from apps.blog.views.post import PostDetail, PostDetailView, PostList
+from apps.blog.views.post import PostDetail, PostDetailView, PostLikeToggleView, PostList
 from apps.blog.views.blog import BlogListCreateView
 from apps.blog.views.author import AuthorListView
 from apps.blog.views.image import ImageListView, ImageCreateView
@@ -10,6 +10,7 @@ from apps.blog.views.index import index
 urlpatterns = [
     path('posts/', PostList.as_view(), name='post-list'),
     path('posts/<pk>/', PostDetail.as_view(), name='post-detail'),
+    path('posts/<pk>/like/', PostLikeToggleView.as_view(), name='post-like'),
     path('posts/<pk>/view/', PostDetailView.as_view(), name='post-view'),
     path('posts/create/', BlogListCreateView.as_view(), name='post-create'),
     path('authors/', AuthorListView.as_view(), name='author-list'),

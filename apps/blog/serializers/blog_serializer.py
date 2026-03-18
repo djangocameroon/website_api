@@ -8,6 +8,7 @@ from apps.blog.models.tag import BlogTag
 from apps.blog.serializers.author_serializer import AuthorSerializer
 from apps.blog.serializers.tag_serializer import TagSerializer
 from apps.blog.serializers.image_serializer import ImageSerializer
+from apps.blog.services.blog_likes import BlogLikeService
 
 
 class BlogSerializer(serializers.ModelSerializer):
@@ -18,6 +19,7 @@ class BlogSerializer(serializers.ModelSerializer):
         rep = super().to_representation(instance)
         rep['slug'] = f"/{instance.slug}"
         rep['tags'] = list(instance.tags.values_list('name', flat=True))
+        rep['is_liked_by_user'] = BlogLikeService.has_liked(instance, self.context['request'].user)
         if instance.author is None:
             rep['author'] = None
         return rep
