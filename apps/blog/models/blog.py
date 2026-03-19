@@ -11,7 +11,7 @@ class Blog(BaseModel):
     cover_image = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    author = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    author = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True)
     read_time = models.PositiveIntegerField(default=0)
     likes = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
@@ -27,5 +27,27 @@ class Blog(BaseModel):
         verbose_name = _("Blog")
         verbose_name_plural = _("Blog")
 
+class BlogView(models.Model):
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name='blog_views')
+    user = models.ForeignKey('users.User', null=True, blank=True, on_delete=models.SET_NULL)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.CharField(max_length=255, blank=True)
+    viewed_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['blog', 'ip_address']),
+            models.Index(fields=['blog', 'user']),
+        ]
+
+class BlogLike(models.Model):
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name='blog_likes')
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='liked_blogs')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [['blog', 'user']]  # one like per user per blog
+        indexes = [
+            models.Index(fields=['blog', 'user']),
+        ]
 

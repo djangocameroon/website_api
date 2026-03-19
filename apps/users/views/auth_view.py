@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.signals import user_logged_in
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from oauth2_provider.models import AccessToken
 from rest_framework import permissions
@@ -92,6 +93,7 @@ class LoginView(APIResponseMixin, APIView):
             "expires_in": tokens['access_token'].expires,
             "user": UserSerializer(user).data,
         }
+        user_logged_in.send(sender=user.__class__, request=request, user=user)
 
         return self.success(_("Login successfully"), response_data, status.HTTP_200_OK)
 
