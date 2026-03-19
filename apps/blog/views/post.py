@@ -2,6 +2,7 @@ from uuid import UUID
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from drf_spectacular.openapi import OpenApiParameter
@@ -143,9 +144,24 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
         summary="Delete blog post",
         description="Delete a blog post",
         tags=["Blog"],
-        responses={204: None}
+        responses={
+            204: OpenApiResponse(
+                response=None,
+                description=_("Blog post deleted successfully")
+            ),
+            403: OpenApiResponse(
+                response=None,
+                description=_("Forbidden: You do not have permission to delete this blog post")
+            ),
+            404: OpenApiResponse(
+                response=None,
+                description=_("Not Found: Blog post does not exist")
+            ),
+        },
     )
     def delete(self, request, *args, **kwargs):
+        if request.user.username != self.get_object().author.username:
+            return Response(status=status.HTTP_403_FORBIDDEN)
         return super().delete(request, *args, **kwargs)
 
 class PostDetailView(generics.RetrieveAPIView):

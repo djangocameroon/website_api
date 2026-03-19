@@ -26,12 +26,13 @@ class BlogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Blog
-        exclude = ['active', 'updated_at', 'created_by', 'updated_by']
+        exclude = ['active', 'created_by', 'updated_by']
 
 class BlogCreateUpdateSerializer(serializers.ModelSerializer):
     cover_image = serializers.URLField(required=False, allow_blank=True)
     read_time = serializers.IntegerField(required=False, min_value=0)
     tags = serializers.ListField(child=serializers.CharField(), required=False, write_only=True)
+    slug = serializers.CharField(read_only=True)
     
     def to_representation(self, instance):
         rep = super().to_representation(instance)
@@ -40,7 +41,7 @@ class BlogCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Blog
-        fields = ['title', 'content', 'tags', 'cover_image', 'read_time']
+        fields = ['title', 'content', 'tags', 'cover_image', 'read_time', 'slug']
 
     def validate_tags(self, tags=[]):
         validated_tags = []
