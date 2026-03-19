@@ -103,15 +103,19 @@ if not DEBUG:
     AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME') or None
     AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL') or None
 
-    AWS_S3_CUSTOM_DOMAIN = os.getenv(
-        'AWS_S3_CUSTOM_DOMAIN',
-        f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com' if AWS_STORAGE_BUCKET_NAME else '',
-    )
+    AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN') or None
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
+    AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'True').lower() in ('true', '1')
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+
+    if AWS_S3_CUSTOM_DOMAIN:
+        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    elif AWS_S3_ENDPOINT_URL:
+        MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
+    else:
+        MEDIA_URL = '/media/'
 else:
     MEDIA_URL = '/media/'
 
