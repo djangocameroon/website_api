@@ -17,8 +17,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/hour",
-        "user": "1000/hour",
+        "anon": "100000/hour",
+        "user": "100000/hour",
         "resend_verification": "3/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "apps.users.pagination.CustomPagination",
@@ -54,6 +54,16 @@ SPECTACULAR_SETTINGS = {
     'POSTPROCESSING_HOOKS': [
         'utils.main.add_tag_groups'
     ],
+}
+
+UNFOLD = {
+    "SITE_TITLE": "Django Cameroon Admin",
+    "SITE_HEADER": "Django Cameroon",
+    "SITE_URL": "/",
+    "SITE_ICON": "https://avatars.githubusercontent.com/u/142497557",
+    "SITE_LOGO": "https://avatars.githubusercontent.com/u/142497557",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
 }
 
 AUTHENTICATION_BACKENDS = [

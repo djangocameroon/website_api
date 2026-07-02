@@ -4,7 +4,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.events.models.speaker import AvailableSocialMedia
 from apps.users.models import BaseModel
 from apps.users.models.user_manager import UserManager
 
@@ -76,24 +75,3 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
         db_table = "users"
         verbose_name = _("User")
         verbose_name_plural = _("Users")
-
-
-class UserSocialAccount(BaseModel):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="social_accounts",
-        verbose_name=_("User"), help_text=_("The user's social account"),
-    )
-    platform = models.ForeignKey(
-        AvailableSocialMedia, on_delete=models.CASCADE,
-        verbose_name=_("Platform"), help_text=_("The social media platform"),
-    )
-    link = models.URLField()
-
-    def save(self, *args, **kwargs):
-        self.active = self.platform.active
-        super().save(*args, **kwargs)
-
-    class Meta:
-        unique_together = ("user", "platform")
-        verbose_name = _("User Social Account")
-        verbose_name_plural = _("User Social Accounts")

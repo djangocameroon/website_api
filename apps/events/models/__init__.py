@@ -1,5 +1,5 @@
 from .event import Event, EventCity, EventRegion, EventVenue, EventTag
 from .reservation import Reservation
-from .speaker import Speaker, SpeakerSocialMedia, SpeakerSpeciality, AvailableSocialMedia
+from .speaker import Speaker, SpeakerSocialMedia, SpeakerSpeciality
 from .event_registration import EventRegistration, EventAttendanceStats
 from .projects import Project

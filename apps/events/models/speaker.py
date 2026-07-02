@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.events.models.constants import SOCIAL_MEDIA_PLATFORMS
 from apps.users.models import BaseModel
 
 
@@ -13,7 +14,7 @@ class Speaker(BaseModel):
         help_text=_("Speaker's full name"),
     )
     photo = models.URLField(
-        null=False, default="https://via.placeholder.com/150",
+        null=True, blank=True,
         help_text=_("Speaker's photo"), verbose_name=_("Photo URL"),
     )
     bio = models.TextField(
@@ -42,29 +43,6 @@ class Speaker(BaseModel):
         verbose_name_plural = _("Speakers")
 
 
-class AvailableSocialMedia(models.Model):
-    """
-    Available social media platforms
-    """
-    name = models.CharField(
-        max_length=50, help_text="Name of the social media platform",
-        verbose_name="Social Media Platform Name",
-    )
-    link = models.URLField(
-        help_text="Link to the social media platform",
-        verbose_name="Social Media Platform Link",
-    )
-    active = models.BooleanField(
-        default=True, help_text="Is the social media platform active?",
-        verbose_name="Is Active",
-    )
-
-    class Meta:
-        db_table = "available_social_media"
-        verbose_name = _("Available Social Media")
-        verbose_name_plural = _("Available Social Media")
-
-
 class SpeakerSpeciality(models.Model):
     """
     Speaker specialities
@@ -79,24 +57,26 @@ class SpeakerSpeciality(models.Model):
         verbose_name = _("Speaker Speciality")
         verbose_name_plural = _("Speaker Specialities")
 
+    def __str__(self):
+        return self.name
+
 
 class SpeakerSocialMedia(BaseModel):
     speaker = models.ForeignKey(
         Speaker, on_delete=models.CASCADE, related_name="social_media",
         verbose_name=_("Speaker"), help_text=_("Speaker's social media"),
     )
-    platform = models.ForeignKey(
-        AvailableSocialMedia, on_delete=models.CASCADE,
-        verbose_name=_("Social Media Platform"),
-        help_text=_("Social media platform"),
+    platform = models.CharField(
+        max_length=50, choices=SOCIAL_MEDIA_PLATFORMS,
+        verbose_name=_("Social Media Platform"), help_text=_("Social media platform"),
     )
-    handle = models.CharField(
-        max_length=50, verbose_name=_("Handle"), help_text=_("Social media handle"),
+    profile_link = models.CharField(
+        max_length=100, verbose_name=_("Profile Link"), help_text=_("Social media profile link"),
     )
-
-    def save(self, *args, **kwargs):
-        self.active = self.platform.active
-        super().save(*args, **kwargs)
+    active = models.BooleanField(
+        default=True, help_text="Is the social media platform active?",
+        verbose_name="Is Active",
+    )
 
     class Meta:
         db_table = "speaker_social_media"

@@ -13,15 +13,24 @@ from services import CalendarService
 class EventRegion(models.Model):
     name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
+
 
 class EventCity(models.Model):
     name = models.CharField(max_length=50)
     region = models.ForeignKey(EventRegion, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"{self.name}, {self.region.name}"
+
 
 class EventVenue(models.Model):
     name = models.CharField(max_length=50)
     city = models.ForeignKey(EventCity, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.name} ({self.city.name})"
 
 
 class Event(BaseModel):
@@ -103,7 +112,6 @@ class Event(BaseModel):
 
 class EventTag(models.Model):
     name = models.CharField(max_length=50)
-    color = models.CharField(max_length=10)
 
     def __str__(self):
         return self.name

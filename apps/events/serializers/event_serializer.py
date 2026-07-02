@@ -2,17 +2,40 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field, OpenApiTypes
 from rest_framework import serializers
 
-from apps.events.models import Event, Speaker, EventTag, EventVenue
+from apps.events.models import Event, EventCity, EventRegion, Speaker, EventTag, EventVenue
 from apps.events.serializers.speaker_serializer import SpeakerSerializer
+
+
+class EventRegionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventRegion
+        fields = ("id", "name")
+
+
+class EventCitySerializer(serializers.ModelSerializer):
+    region = EventRegionSerializer()
+
+    class Meta:
+        model = EventCity
+        fields = ("id", "name", "region")
+
+
+class EventVenueSerializer(serializers.ModelSerializer):
+    city = EventCitySerializer()
+
+    class Meta:
+        model = EventVenue
+        fields = ("id", "name", "city")
 
 
 class EventSerializer(serializers.ModelSerializer):
     speakers_data = serializers.SerializerMethodField()
     tags_list = serializers.SerializerMethodField()
+    location_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
-        exclude = ("active", "level", "speakers", "tags")
+        exclude = ("active", "level", "speakers", "tags", "location", "created_by", "updated_by")
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_speakers_data(self, event):
@@ -27,6 +50,13 @@ class EventSerializer(serializers.ModelSerializer):
             return [tag.name for tag in event.tags.all()]
         except:
             return []
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_location_data(self, event):
+        try:
+            return EventVenueSerializer(event.location).data
+        except:
+            return None
 
 
 class CreateEventInputSerializer(serializers.ModelSerializer):
