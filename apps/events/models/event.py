@@ -110,6 +110,12 @@ class Event(BaseModel):
             while Event.objects.filter(slug=self.slug).exists():
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
+
+        if not self.thumbnail:
+            if self.for_community == Community.DJANGO_CAMEROON:
+                self.thumbnail = "https://minio.reckot.com/djcmr-media/dj-cmr.jpg"
+            elif self.for_community == Community.DJANGO_GIRLS_CAMEROON:
+                self.thumbnail = "https://minio.reckot.com/djcmr-media/dj-cmr-girls.jpg"
         super().save(*args, **kwargs)
 
     class Meta:

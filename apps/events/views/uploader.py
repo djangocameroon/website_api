@@ -14,8 +14,8 @@ class FileUploadView(APIView, APIResponseMixin):
     """
     View to handle file uploads.
     """
-    # permission_classes = [IsAuthenticated]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    # permission_classes = [AllowAny]
     serializer_class = UploadSerializer
     parser_classes = [MultiPartParser]
 

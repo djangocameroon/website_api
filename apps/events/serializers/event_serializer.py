@@ -55,7 +55,7 @@ class EventSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.STR)
     def get_location_data(self, event):
         try:
-            return EventVenueSerializer(event.location).data
+            return EventVenueSerializer(event.location).data if event.type != EventType.ONLINE else None
         except:
             return None
 
