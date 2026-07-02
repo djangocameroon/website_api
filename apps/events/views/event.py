@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.events.models.event import Event
+from apps.events.models.reservation import Reservation
+from apps.events.permissions import IsSuperUser
 from apps.events.serializers.event_serializer import (
     CreateEventInputSerializer,
     EventSerializer,
@@ -186,7 +188,7 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         },
         tags=["Events"],
     )
-    @action(detail=False, methods=["GET"], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["GET"], permission_classes=[IsSuperUser])
     def retrieve_event_reservations(self, request) -> Response:
         """
         Get all reservations for a specific event.
@@ -206,4 +208,37 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
             message=_("List of reservations"),
             status_code=status.HTTP_200_OK,
             data=ReservationSerializer(reservations, many=True).data,
+        )
+
+    @extend_schema(
+        summary="Check if the current user has registered for an event",
+        operation_id="check_event_registration",
+        description="Check whether the authenticated user has an existing reservation for the given event.",
+        responses={
+            200: OpenApiResponse(
+                description=_("Registration status")
+            )
+        },
+        tags=["Events"],
+    )
+    @action(detail=False, methods=["GET"], permission_classes=[IsAuthenticated])
+    def check_registration(self, request) -> Response:
+        """
+        Check if the current authenticated user has registered for an event.
+        """
+        event_id = request.query_params.get("event_id")
+        if not event_id:
+            raise serializers.ValidationError(_("event_id query parameter is required"))
+
+        reservation = Reservation.objects.filter(
+            for_event_id=event_id, user=request.user
+        ).only('id').first()
+
+        return self.success(
+            message=_("Registration status"),
+            status_code=status.HTTP_200_OK,
+            data={
+                "registered": reservation is not None,
+                "reservation_id": reservation.id if reservation else None,
+            },
         )
