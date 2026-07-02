@@ -154,6 +154,9 @@ class EventAdmin(ModelAdmin):
         ("Metadata", {"fields": ("created_by", "updated_by", "created_at", "updated_at"), "classes": ("collapse",)}),
     )
 
+    class Media:
+        js = ("events/admin/event_type_location.js",)
+
 @admin.register(EventTag)
 class EventTagAdmin(ModelAdmin):
     def has_module_permission(self, request):

@@ -73,7 +73,10 @@ class NotificationService:
             if send_sms and hasattr(user, 'phone_number') and user.phone_number:
                 try:
                     event_date = event.date.strftime("%b %d, %Y at %I:%M %p")
-                    event_location = f"{event.location.name}, {event.location.city.name}"
+                    event_location = (
+                        f"{event.location.name}, {event.location.city.name}"
+                        if event.location else "Online"
+                    )
                     event_url = f"{self.site_url.rstrip('/')}/events/{event.slug}"
                     self.sms_service.send_event_notification_sms(
                         user.phone_number,

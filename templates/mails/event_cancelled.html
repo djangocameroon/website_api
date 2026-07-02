@@ -13,7 +13,7 @@
 <div class="warning-box">
     <p><strong>Event:</strong> {{ event.title }}</p>
     <p><strong>Scheduled Date:</strong> {{ event.date|date:"l, F d, Y" }} at {{ event.date|time:"g:i A" }}</p>
-    <p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city.name }}</p>
+    <p><strong>Location:</strong> {% if event.location %}{{ event.location.name }}, {{ event.location.city.name }}{% else %}Online{% endif %}</p>
 </div>
 
 {% if cancellation_reason %}

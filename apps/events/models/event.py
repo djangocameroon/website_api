@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -54,8 +55,8 @@ class Event(BaseModel):
         help_text=_("The description of the event"),
     )
     location = models.ForeignKey(
-        EventVenue, on_delete=models.CASCADE,
-        verbose_name=_("Event location"), help_text=_("The location of the event"),
+        EventVenue, on_delete=models.CASCADE, null=True, blank=True,
+        verbose_name=_("Event location"), help_text=_("The location of the event (not required for online events)"),
     )
     date = models.DateTimeField(
         verbose_name=_("Event date"), help_text=_("The date of the event"),
@@ -87,6 +88,13 @@ class Event(BaseModel):
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        super().clean()
+        if self.type != EventType.ONLINE and self.location_id is None:
+            raise ValidationError({
+                "location": _("Event location is required unless the event type is Online."),
+            })
 
     def get_calendar_ics(self):
         calendar_service = CalendarService()

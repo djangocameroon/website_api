@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema_field, OpenApiTypes
 from rest_framework import serializers
 
 from apps.events.models import Event, EventCity, EventRegion, Speaker, EventTag, EventVenue
+from apps.events.models.constants import EventType
 from apps.events.serializers.speaker_serializer import SpeakerSerializer
 
 
@@ -67,14 +68,21 @@ class CreateEventInputSerializer(serializers.ModelSerializer):
     tags = serializers.ListField(child=serializers.CharField(), required=False)
     speakers = serializers.ListField(child=serializers.CharField(), required=False)
     thumbnail = serializers.ImageField(required=False)
+    location = serializers.PrimaryKeyRelatedField(
+        queryset=EventVenue.objects.all(), required=False, allow_null=True, default=None,
+    )
 
     class Meta:
         model = Event
         exclude = ("created_by", "id", "active", "slug", "level",)
 
     def validate(self, data):
-        if not EventVenue.objects.filter(id=data["location"].id).exists():
-            raise serializers.ValidationError(_("Invalid location ID."))
+        event_type = data.get("type", getattr(self.instance, "type", None))
+        location = data.get("location", getattr(self.instance, "location", None))
+        if event_type != EventType.ONLINE and location is None:
+            raise serializers.ValidationError(
+                {"location": _("Event location is required unless the event type is Online.")}
+            )
         return data
 
     def validate_tags(self, tags):
