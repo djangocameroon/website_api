@@ -54,6 +54,7 @@ SPECTACULAR_SETTINGS = {
     'POSTPROCESSING_HOOKS': [
         'utils.main.add_tag_groups'
     ],
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 UNFOLD = {
