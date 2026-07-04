@@ -12,6 +12,7 @@ CUSTOM_APPS = [
     "apps.users",
     "apps.events",
     "apps.blog",
+    "apps.subs",
 ]
 
 # ---------------------- some extra stuff ------------------------------------- #

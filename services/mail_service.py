@@ -116,6 +116,15 @@ class MailService:
             "site_url": site_url
         })
 
+    def send_subscription_verification_email(self, email: str, verification_url: str):
+        """Send email verification link to a newsletter subscriber."""
+        self.send_mail(
+            "Confirm your subscription - Django Cameroon",
+            "mails/subscription_verification.html",
+            [email],
+            context={"verification_url": verification_url}
+        )
+
     def send_new_location_login_alert(self, user, login_info: dict,
                                      site_url: str = "https://djangocameroon.org"):
         """Send security alert for new login"""
