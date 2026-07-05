@@ -49,6 +49,10 @@ def add_tag_groups(result, generator, request, public):
         {
             'name': 'Blog Management',
             'tags': ['Blog', 'Posts', 'Comments']
+        },
+        {
+            'name': 'Subscription Management',
+            'tags': ['Subscriber']
         }
     ]
     return result

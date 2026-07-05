@@ -1,4 +1,5 @@
-from django.db import models
+from django.utils import timezone
+from django.db import models, transaction
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 
@@ -28,24 +29,30 @@ class Project(BaseModel):
         default=False, verbose_name=_("Featured"),
         help_text=_("Mark as featured project (max 3 featured projects)")
     )
+    created_at = models.DateTimeField(auto_now_add=False, verbose_name=_("Created At"))
 
     def __str__(self):
         return self.title
 
     def save(self, *args, **kwargs):
-        if self.is_featured:
-            featured_count = (
-                Project.objects
-                .select_for_update()
-                .filter(is_featured=True)
-                .exclude(pk=self.pk)
-                .count()
-            )
-            if featured_count >= MAX_FEATURED_PROJECTS:
-                raise ValueError(
-                    f"Maximum of {MAX_FEATURED_PROJECTS} featured projects allowed"
+        with transaction.atomic():
+            if self.is_featured:
+                featured_count = (
+                    Project.objects
+                    .select_for_update()
+                    .filter(is_featured=True)
+                    .exclude(pk=self.pk)
+                    .count()
                 )
-        super().save(*args, **kwargs)
+                if featured_count >= MAX_FEATURED_PROJECTS:
+                    raise ValueError(
+                        f"Maximum of {MAX_FEATURED_PROJECTS} featured projects allowed"
+                    )
+            if not self.created_at:
+                self.created_at = timezone.now()
+            if not self.thumbnail:
+                self.thumbnail = "https://minio.reckot.com/djcmr-media/dj-cmr.jpg"
+            super().save(*args, **kwargs)
 
     class Meta:
         db_table = "projects"

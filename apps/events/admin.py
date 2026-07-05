@@ -9,7 +9,7 @@ from unfold.admin import ModelAdmin, TabularInline
 from unfold.widgets import UnfoldAdminFileFieldWidget, UnfoldAdminTextInputWidget
 
 from apps.events.models import (
-    Event, EventCity, EventRegion,
+    Event, EventCity, EventRegion, Project,
     EventVenue, EventTag, Reservation,
     Speaker, SpeakerSocialMedia, SpeakerSpeciality,
 )
@@ -163,3 +163,58 @@ class EventTagAdmin(ModelAdmin):
         return False
 
 admin.site.register(Reservation)
+
+
+class ProjectForm(forms.ModelForm):
+    thumbnail = forms.CharField(
+        required=False,
+        widget=UnfoldAdminTextInputWidget,
+        help_text="Thumbnail URL, or upload a file below instead.",
+    )
+    thumbnail_file = forms.FileField(
+        required=False,
+        widget=UnfoldAdminFileFieldWidget,
+        help_text="Upload a thumbnail file (overrides the URL above).",
+    )
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        thumbnail_file = cleaned_data.get("thumbnail_file")
+        if thumbnail_file:
+            file_name = default_storage.save(thumbnail_file.name, ContentFile(thumbnail_file.read()))
+            cleaned_data["thumbnail"] = default_storage.url(file_name)
+            if os.getenv("ENVIRONMENT") == "development":
+                cleaned_data["thumbnail"] = f"http://localhost:8912{cleaned_data['thumbnail']}"
+
+        return cleaned_data
+
+
+@admin.register(Project)
+class ProjectAdmin(ModelAdmin):
+    form = ProjectForm
+    list_display = ("title", "published", "is_featured", "thumbnail_preview")
+    list_filter = ("published", "is_featured")
+    search_fields = ("title", "description")
+    readonly_fields = (
+        "thumbnail_preview", "created_by", "updated_by", "updated_at",
+    )
+    ordering = ("-created_at",)
+    fieldsets = (
+        (None, {"fields": ("title", "description", "tags", "created_at")}),
+        ("Media & Links", {"fields": ("thumbnail", "thumbnail_file", "thumbnail_preview", "github_link", "demo_link")}),
+        ("Status", {"fields": ("published", "is_featured")}),
+        ("Metadata", {"fields": ("created_by", "updated_by", "updated_at"), "classes": ("collapse",)}),
+    )
+
+    @admin.display(description="Preview")
+    def thumbnail_preview(self, obj):
+        if not obj.thumbnail:
+            return "-"
+        return format_html(
+            '<img src="{}" style="height:48px;width:80px;border-radius:6px;object-fit:cover;" />',
+            obj.thumbnail,
+        )
