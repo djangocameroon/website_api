@@ -1,7 +1,10 @@
 from uuid import UUID
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.http import Http404
+from drf_spectacular.openapi import OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import status, serializers
@@ -46,6 +49,18 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         summary="Get all events",
         operation_id="get_events",
         description="Get all events.",
+        parameters=[
+            OpenApiParameter(
+                name="upcoming",
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "If true, only return published events whose date is in the "
+                    "future, ordered soonest first."
+                ),
+                required=False,
+                type=OpenApiTypes.BOOL,
+            )
+        ],
         responses={
             200: OpenApiResponse(
                 response=EventSerializer(many=True),
@@ -56,6 +71,10 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
     )
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        if request.query_params.get("upcoming", "").lower() in ("1", "true", "yes"):
+            queryset = queryset.filter(
+                published=True, date__gte=timezone.now()
+            ).order_by("date")
         return self.paginated_response(
             request=request,
             queryset=queryset,
