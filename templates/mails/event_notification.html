@@ -14,7 +14,7 @@
     <p><strong>Event:</strong> {{ event.title }}</p>
     <p><strong>Date:</strong> {{ event.date|date:"l, F d, Y" }} at {{ event.date|time:"g:i A" }}</p>
     <p><strong>Type:</strong> {{ event.get_type_display }}</p>
-    <p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city.name }}</p>
+    <p><strong>Location:</strong> {% if event.location %}{{ event.location.name }}, {{ event.location.city.name }}{% else %}Online{% endif %}</p>
     <p><strong>Category:</strong> {{ event.get_category_display }}</p>
 </div>
 

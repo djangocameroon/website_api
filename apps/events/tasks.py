@@ -106,16 +106,11 @@ def send_reservation_confirmation_task(reservation_id) -> None:
 
     try:
         service = NotificationService()
-        service.mail_service.send_mail(
-            subject=f"Reservation Confirmed: {reservation.for_event.title}",
-            message="mails/registration_confirmation.html",
-            to=[reservation.user.email],
-            context={
-                "user": reservation.user,
-                "event": reservation.for_event,
-                "registration": reservation,
-                "site_url": service.site_url,
-            },
+        service.mail_service.send_registration_confirmation(
+            reservation.user,
+            reservation.for_event,
+            reservation,
+            site_url=service.site_url,
         )
     except Exception:
         logger.exception("Error sending reservation confirmation for id=%s", reservation_id)

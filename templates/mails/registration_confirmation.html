@@ -15,7 +15,7 @@
     <p><strong>Date:</strong> {{ event.date|date:"l, F d, Y" }}</p>
     <p><strong>Time:</strong> {{ event.date|time:"g:i A" }}</p>
     <p><strong>Type:</strong> {{ event.get_type_display }}</p>
-    <p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city.name }}</p>
+    {% if event.location %}<p><strong>Location:</strong> {{ event.location.name }}, {{ event.location.city.name }}</p>{% endif %}
     {% if registration.registration_code %}
     <p><strong>Registration Code:</strong> {{ registration.registration_code }}</p>
     {% endif %}

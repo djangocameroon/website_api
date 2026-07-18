@@ -35,6 +35,7 @@ dependencies = [
     "django-oauth-toolkit==2.3.0",
     "django-prometheus==2.3.1",
     "django-storages>=1.14.6",
+    "django-unfold==0.9.0",
     "djangorestframework==3.14.0",
     "drf-spectacular==0.29.0",
     "drf-spectacular-sidecar==2024.7.1",

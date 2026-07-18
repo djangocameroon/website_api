@@ -21,6 +21,7 @@ urlpatterns = (
         path(f"{BASE_API_URL}/", include("apps.events.routes.api")),
         path(f"{BASE_API_URL}/", include("apps.events.routes.extra")),
         path(f"{BASE_API_URL}/", include("apps.blog.routes.api")),
+        path(f"{BASE_API_URL}/", include("apps.subs.routes.api")),
     ] + swagger_urlpatterns
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

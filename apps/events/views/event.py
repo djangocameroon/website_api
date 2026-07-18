@@ -1,5 +1,10 @@
-from django.http import HttpResponse
+from uuid import UUID
+from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.http import Http404
+from drf_spectacular.openapi import OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import status, serializers
@@ -10,6 +15,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.events.models.event import Event
+from apps.events.models.reservation import Reservation
+from apps.events.permissions import IsSuperUser
 from apps.events.serializers.event_serializer import (
     CreateEventInputSerializer,
     EventSerializer,
@@ -19,7 +26,9 @@ from mixins.api_response_mixin import APIResponseMixin
 
 
 class EventViewSet(ModelViewSet, APIResponseMixin):
-    queryset = Event.objects.all().select_related('created_by', 'updated_by')
+    queryset = Event.objects.all().select_related(
+        'created_by', 'updated_by', 'location', 'location__city', 'location__city__region'
+    )
     authentication_classes = [OAuth2Authentication]
     http_method_names = ["get", "post", "put", "delete"]
     parser_classes = [JSONParser]
@@ -40,6 +49,18 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         summary="Get all events",
         operation_id="get_events",
         description="Get all events.",
+        parameters=[
+            OpenApiParameter(
+                name="upcoming",
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "If true, only return published events whose date is in the "
+                    "future, ordered soonest first."
+                ),
+                required=False,
+                type=OpenApiTypes.BOOL,
+            )
+        ],
         responses={
             200: OpenApiResponse(
                 response=EventSerializer(many=True),
@@ -50,6 +71,10 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
     )
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        if request.query_params.get("upcoming", "").lower() in ("1", "true", "yes"):
+            queryset = queryset.filter(
+                published=True, date__gte=timezone.now()
+            ).order_by("date")
         return self.paginated_response(
             request=request,
             queryset=queryset,
@@ -94,9 +119,22 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         tags=["Events"],
     )
     def retrieve(self, request, *args, **kwargs):
-        event = self.get_queryset().select_related(
-            'created_by', 'updated_by'
-        ).get(pk=kwargs['pk'])
+        lookup_field = self.kwargs.get('pk')
+        query = Q(slug=lookup_field)
+        
+        try:
+            UUID(lookup_field)
+            query |= Q(id=lookup_field)
+        except ValueError:
+            pass
+        
+        try: 
+            event = self.get_queryset().select_related(
+                'created_by', 'updated_by'
+            ).get(query)
+        except Event.DoesNotExist:
+            raise Http404
+
         serializer = EventSerializer(event)
         return self.success(
             message=_("Event details"),
@@ -169,21 +207,57 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         },
         tags=["Events"],
     )
-    @action(detail=False, methods=["GET"], permission_classes=[IsAuthenticated])
-    def retrieve_event_reservations(self, request, event_id: str) -> Response:
+    @action(detail=False, methods=["GET"], permission_classes=[IsSuperUser])
+    def retrieve_event_reservations(self, request) -> Response:
         """
         Get all reservations for a specific event.
         """
+        event_id = request.query_params.get("event_id")
+        if not event_id:
+            raise serializers.ValidationError(_("event_id query parameter is required"))
         try:
             existing_event = Event.objects.prefetch_related('reservations').get(id=event_id)
         except Event.DoesNotExist:
             raise serializers.ValidationError(_("Event not found"))
 
         reservations = existing_event.reservations.only(
-            'id', 'user', 'status', 'created_at'
+            'id', 'user', 'check_in', 'created_at'
         )
         return self.success(
             message=_("List of reservations"),
             status_code=status.HTTP_200_OK,
             data=ReservationSerializer(reservations, many=True).data,
+        )
+
+    @extend_schema(
+        summary="Check if the current user has registered for an event",
+        operation_id="check_event_registration",
+        description="Check whether the authenticated user has an existing reservation for the given event.",
+        responses={
+            200: OpenApiResponse(
+                description=_("Registration status")
+            )
+        },
+        tags=["Events"],
+    )
+    @action(detail=False, methods=["GET"], permission_classes=[IsAuthenticated])
+    def check_registration(self, request) -> Response:
+        """
+        Check if the current authenticated user has registered for an event.
+        """
+        event_id = request.query_params.get("event_id")
+        if not event_id:
+            raise serializers.ValidationError(_("event_id query parameter is required"))
+
+        reservation = Reservation.objects.filter(
+            for_event_id=event_id, user=request.user
+        ).only('id').first()
+
+        return self.success(
+            message=_("Registration status"),
+            status_code=status.HTTP_200_OK,
+            data={
+                "registered": reservation is not None,
+                "reservation_id": reservation.id if reservation else None,
+            },
         )

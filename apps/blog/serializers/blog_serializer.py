@@ -1,99 +1,93 @@
 from rest_framework import serializers
+from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
+from django.db import IntegrityError
+
 from apps.blog.models.blog import Blog
-from apps.blog.models.author import Author
-from apps.blog.models.category import Category
-from apps.blog.models.tag import Tag
+from apps.blog.models.tag import BlogTag
 from apps.blog.serializers.author_serializer import AuthorSerializer
-from apps.blog.serializers.category_serializer import CategorySerializer
 from apps.blog.serializers.tag_serializer import TagSerializer
 from apps.blog.serializers.image_serializer import ImageSerializer
+from apps.blog.services.blog_likes import BlogLikeService
 
 
 class BlogSerializer(serializers.ModelSerializer):
-    author = AuthorSerializer()
-    categories = CategorySerializer(many=True)
-    tags = TagSerializer(many=True)
-    images = ImageSerializer(many=True, read_only=True)
+    author = AuthorSerializer(read_only=True, only_fields=['username'], allow_null=True)
+    views = serializers.IntegerField(read_only=True)
+    
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['slug'] = f"/{instance.slug}"
+        rep['tags'] = list(instance.tags.values_list('name', flat=True))
+        rep['is_liked_by_user'] = BlogLikeService.has_liked(instance, self.context['request'].user)
+        if instance.author is None:
+            rep['author'] = None
+        return rep
 
     class Meta:
         model = Blog
-        fields = ['author', 'categories', 'tags', 'title', 'content', 'images']
-
-    def create(self, validated_data):
-        author_data = validated_data.pop('author')
-        categories_data = validated_data.pop('categories', [])
-        tags_data = validated_data.pop('tags', [])
-
-        author_instance, _ = Author.objects.get_or_create(**author_data)
-
-        blog = Blog.objects.create(author=author_instance, **validated_data)
-
-        self._update_categories_and_tags(blog, categories_data, tags_data)
-
-        return blog
-
-    def update(self, instance, validated_data):
-        author_data = validated_data.pop('author', None)
-        categories_data = validated_data.pop('categories', [])
-        tags_data = validated_data.pop('tags', [])
-
-        if author_data:
-            author_instance, _ = Author.objects.get_or_create(**author_data)
-            instance.author = author_instance
-
-        instance.title = validated_data.get('title', instance.title)
-        instance.content = validated_data.get('content', instance.content)
-        instance.save()
-
-        self._update_categories_and_tags(instance, categories_data, tags_data)
-
-        return instance
-
-    def _update_categories_and_tags(self, instance, categories_data, tags_data):
-        # Update categories
-        updated_categories = []
-        for category_data in categories_data:
-            category, _ = Category.objects.get_or_create(**category_data)
-            updated_categories.append(category)
-        instance.categories.set(updated_categories)
-
-        # Update tags
-        updated_tags = []
-        for tag_data in tags_data:
-            tag, _ = Tag.objects.get_or_create(**tag_data)
-            updated_tags.append(tag)
-        instance.tags.set(updated_tags)
-
+        exclude = ['active', 'created_by', 'updated_by']
 
 class BlogCreateUpdateSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
-    categories = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), many=True)
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    cover_image = serializers.URLField(required=False, allow_blank=True)
+    read_time = serializers.IntegerField(required=False, min_value=0)
+    tags = serializers.ListField(child=serializers.CharField(), required=False, write_only=True)
+    slug = serializers.CharField(read_only=True)
+    
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['tags'] = list(instance.tags.values_list('name', flat=True))
+        return rep
 
     class Meta:
         model = Blog
-        fields = ['author', 'categories', 'tags', 'title', 'content']
+        fields = ['title', 'content', 'tags', 'cover_image', 'read_time', 'slug']
+
+    def validate_tags(self, tags=[]):
+        validated_tags = []
+        tags = [tag.strip().lower() for tag in tags]
+        for tag_name in tags:
+            tag_obj, created = BlogTag.objects.get_or_create(name=tag_name)
+            validated_tags.append(tag_obj)
+        return validated_tags
 
     def create(self, validated_data):
-        categories = validated_data.pop('categories')
-        tags = validated_data.pop('tags')
-        blog = Blog.objects.create(**validated_data)
-        blog.categories.set(categories)
+        user = self.context['request'].user
+        if not user:
+            raise serializers.ValidationError(_("User must be authenticated to create a blog post."))
+        validated_data['author'] = user
+
+        tags = validated_data.pop('tags', [])
+        validated_data['slug'] = slugify(validated_data['title'])
+        try: 
+            blog = Blog.objects.create(**validated_data)
+        except IntegrityError as e:
+            raise serializers.ValidationError(_("A blog with this title already exists."))
+        
         blog.tags.set(tags)
         return blog
 
     def update(self, instance, validated_data):
-        categories = validated_data.pop('categories', None)
         tags = validated_data.pop('tags', None)
+        title = validated_data.get('title', None)
+
+        if title != instance.title:
+            validated_data['slug'] = slugify(title)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-
-        if categories is not None:
-            instance.categories.set(categories)
 
         if tags is not None:
             instance.tags.set(tags)
 
         instance.save()
         return instance
+
+
+class BlogCreateUpdateResponseSerializer(serializers.ModelSerializer):
+    tags = serializers.ListField(child=serializers.CharField(), read_only=True)
+    class Meta:
+        model = Blog
+        fields = ['title', 'slug', 'content', 'cover_image', 'read_time', 'tags']
+
+

@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -13,15 +14,24 @@ from services import CalendarService
 class EventRegion(models.Model):
     name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
+
 
 class EventCity(models.Model):
     name = models.CharField(max_length=50)
     region = models.ForeignKey(EventRegion, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"{self.name}, {self.region.name}"
+
 
 class EventVenue(models.Model):
     name = models.CharField(max_length=50)
     city = models.ForeignKey(EventCity, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.name} ({self.city.name})"
 
 
 class Event(BaseModel):
@@ -45,8 +55,8 @@ class Event(BaseModel):
         help_text=_("The description of the event"),
     )
     location = models.ForeignKey(
-        EventVenue, on_delete=models.CASCADE,
-        verbose_name=_("Event location"), help_text=_("The location of the event"),
+        EventVenue, on_delete=models.CASCADE, null=True, blank=True,
+        verbose_name=_("Event location"), help_text=_("The location of the event (not required for online events)"),
     )
     date = models.DateTimeField(
         verbose_name=_("Event date"), help_text=_("The date of the event"),
@@ -79,6 +89,13 @@ class Event(BaseModel):
     def __str__(self):
         return self.title
 
+    def clean(self):
+        super().clean()
+        if self.type != EventType.ONLINE and self.location_id is None:
+            raise ValidationError({
+                "location": _("Event location is required unless the event type is Online."),
+            })
+
     def get_calendar_ics(self):
         calendar_service = CalendarService()
         ics_content = calendar_service.generate_event_ics(self)
@@ -93,6 +110,12 @@ class Event(BaseModel):
             while Event.objects.filter(slug=self.slug).exists():
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
+
+        if not self.thumbnail:
+            if self.for_community == Community.DJANGO_CAMEROON:
+                self.thumbnail = "https://minio.reckot.com/djcmr-media/dj-cmr.jpg"
+            elif self.for_community == Community.DJANGO_GIRLS_CAMEROON:
+                self.thumbnail = "https://minio.reckot.com/djcmr-media/dj-cmr-girls.jpg"
         super().save(*args, **kwargs)
 
     class Meta:
@@ -103,7 +126,6 @@ class Event(BaseModel):
 
 class EventTag(models.Model):
     name = models.CharField(max_length=50)
-    color = models.CharField(max_length=10)
 
     def __str__(self):
         return self.name

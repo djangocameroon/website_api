@@ -10,9 +10,11 @@ def get_serializer(self, *args, **kwargs):
     return self.serializer_class(*args, **kwargs)
 
 
-def generate_tokens(self, user):
+def generate_tokens(self, user, remember=False):
     application, _ = Application.objects.get_or_create(name="Default")
-    expiration_time = now() + timedelta(days=1)
+    default_days = 1
+    remember_days = 45
+    expiration_time = now() + timedelta(days=remember_days if remember else default_days)
 
     access_token = AccessToken.objects.create(
         user=user,

@@ -23,7 +23,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     VIRTUAL_ENV=/opt/venv \
     PATH="/opt/venv/bin:$PATH" \
-    APP_HOME=/app
+    APP_HOME=/app \
+    GUNICORN_WORKERS=4 \
+    GUNICORN_THREADS=2 \
+    GUNICORN_TIMEOUT=120 \
+    GUNICORN_MODULE=website_api.wsgi:application
 
 WORKDIR $APP_HOME
 
@@ -52,3 +56,4 @@ HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8000/health/?format=json || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["gunicorn"]

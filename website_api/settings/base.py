@@ -15,6 +15,7 @@ DEBUG = True if os.getenv('DEBUG') == 'True' else False
 ALLOWED_HOSTS = (os.environ.get("ALLOWED_HOSTS", "*")).split(",")
 
 INSTALLED_APPS = [
+    "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -87,6 +88,7 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() == "true"
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+EMAIL_DISPLAY_NAME = os.getenv("EMAIL_DISPLAY_NAME", "Django Cameroon")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -116,6 +118,19 @@ LANGUAGES = [
     ('fr', 'French'),
     ('pcm', 'Pidgin'),
 ]
+
+# 'pcm' isn't in Django's built-in LANG_INFO, which crashes the admin's
+# language switcher (django/templatetags/i18n.py) with KeyError on every
+# page load. Register it, per Django's documented pattern for languages
+# not included by Django: https://docs.djangoproject.com/en/5.0/topics/i18n/translation/#adding-support-for-a-language-not-included-by-django
+from django.conf.locale import LANG_INFO  # noqa: E402
+
+LANG_INFO["pcm"] = {
+    "bidi": False,
+    "code": "pcm",
+    "name": "Nigerian Pidgin",
+    "name_local": "Naijá",
+}
 LOCALE_PATHS = [
     os.path.abspath(os.path.join(BASE_DIR, "locale")),
 ]

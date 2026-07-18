@@ -41,6 +41,7 @@ class ErrorResponseSerializer(serializers.Serializer):
     status = serializers.BooleanField(default=False)
     message = serializers.CharField(default="An error occurred")
     status_code = serializers.IntegerField(default=400)
+    errors = serializers.ListField(child=serializers.CharField(), required=False)
 
     def __init__(self, *args, **kwargs):
         default_message = kwargs.pop('default_message', None)

@@ -12,8 +12,8 @@ secret_key.txt
 db.sqlite3
 
 # Ignore static files
-staticfiles/
-static/
+/staticfiles/
+/static/
 
 # Ignore media files
 media/

@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.signals import user_logged_in
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from oauth2_provider.models import AccessToken
 from rest_framework import permissions
@@ -77,6 +78,7 @@ class LoginView(APIResponseMixin, APIView):
         serializer = get_serializer(self, data=request.data)
         serializer.is_valid(raise_exception=True)
         user = authenticate_user(self, serializer.validated_data)
+        remember_me = serializer.validated_data.get('remember_me', False)
 
         if not user:
             return self.error(
@@ -84,13 +86,14 @@ class LoginView(APIResponseMixin, APIView):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        tokens = generate_tokens(self, user)
+        tokens = generate_tokens(self, user, remember=remember_me)
         response_data = {
             "access_token": tokens['access_token'].token,
             "refresh_token": tokens['refresh_token'].token,
             "expires_in": tokens['access_token'].expires,
             "user": UserSerializer(user).data,
         }
+        user_logged_in.send(sender=user.__class__, request=request, user=user)
 
         return self.success(_("Login successfully"), response_data, status.HTTP_200_OK)
 

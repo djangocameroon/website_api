@@ -3,7 +3,7 @@ from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 
 from apps.events.serializers.upload_serializer import UploadSerializer
@@ -15,6 +15,7 @@ class FileUploadView(APIView, APIResponseMixin):
     View to handle file uploads.
     """
     permission_classes = [IsAuthenticated]
+    # permission_classes = [AllowAny]
     serializer_class = UploadSerializer
     parser_classes = [MultiPartParser]
 

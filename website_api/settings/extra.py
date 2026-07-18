@@ -1,7 +1,7 @@
 import os
 
 from utils.main import load_documentation
-from .base import BASE_DIR, TIME_ZONE, INSTALLED_APPS, MIDDLEWARE
+from .base import BASE_DIR, DEBUG, TIME_ZONE, INSTALLED_APPS, MIDDLEWARE
 
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "exceptions.rest_exception.rest_exception_handler",
@@ -17,8 +17,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/hour",
-        "user": "1000/hour",
+        "anon": "100000/hour",
+        "user": "100000/hour",
         "resend_verification": "3/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "apps.users.pagination.CustomPagination",
@@ -54,6 +54,17 @@ SPECTACULAR_SETTINGS = {
     'POSTPROCESSING_HOOKS': [
         'utils.main.add_tag_groups'
     ],
+    'COMPONENT_SPLIT_REQUEST': True,
+}
+
+UNFOLD = {
+    "SITE_TITLE": "Django Cameroon Admin",
+    "SITE_HEADER": "Django Cameroon",
+    "SITE_URL": "/",
+    "SITE_ICON": "https://avatars.githubusercontent.com/u/142497557",
+    "SITE_LOGO": "https://avatars.githubusercontent.com/u/142497557",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -80,43 +91,45 @@ if os.getenv("ENVIRONMENT") == "production":
     USE_X_FORWARDED_PORT = True
 
 # ---------------------------------------------------------------------------
-# Storage: toggle between local (WhiteNoise) and S3/MinIO via env var
+# Static files: always served via WhiteNoise
 # ---------------------------------------------------------------------------
-USE_S3_STORAGE = os.getenv('USE_S3_STORAGE', 'false').lower() == 'true'
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_MAX_AGE = 0 if DEBUG else 31536000
 
-if USE_S3_STORAGE:
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ---------------------------------------------------------------------------
+# Media files: S3/MinIO in production (DEBUG=False), local in development
+# ---------------------------------------------------------------------------
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+if not DEBUG:
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 
-    # Convert empty strings to None so boto3 falls back to defaults
     AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME') or None
     AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL') or None
 
-    AWS_S3_CUSTOM_DOMAIN = os.getenv(
-        'AWS_S3_CUSTOM_DOMAIN',
-        f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com' if AWS_STORAGE_BUCKET_NAME else '',
-    )
+    AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN') or None
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
-    AWS_LOCATION = 'static'
+    AWS_DEFAULT_ACL = os.getenv('AWS_DEFAULT_ACL', 'public-read')
+    AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False').lower() in ('true', '1')
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-else:
-    WHITENOISE_USE_FINDERS = True
-    WHITENOISE_AUTOREFRESH = False
-    WHITENOISE_MAX_AGE = 31536000
 
+    if AWS_S3_CUSTOM_DOMAIN:
+        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    elif AWS_S3_ENDPOINT_URL:
+        MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
+    else:
+        MEDIA_URL = '/media/'
+else:
     MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-    STATIC_URL = '/static/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ---------------------------------------------------------------------------
 # Redis cache — uses REDIS_URL, falls back to CELERY_BROKER_URL

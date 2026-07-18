@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now, timedelta
 
-from apps.events.models.speaker import Speaker, SpeakerSpeciality, AvailableSocialMedia
+from apps.events.models.speaker import Speaker, SpeakerSpeciality
 from apps.events.models.event import Event, EventVenue, EventCity, EventRegion, EventTag
 from apps.events.models.reservation import Reservation
 from apps.events.models.event_registration import EventRegistration, EventAttendanceStats

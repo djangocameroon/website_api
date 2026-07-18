@@ -67,6 +67,10 @@ class LoginSerializer(serializers.Serializer):
         required=True, write_only=True,
         help_text=_('Enter your password')
     )
+    remember_me = serializers.BooleanField(
+        required=False, default=False,
+        help_text=_('Keep me logged in for 45 days')
+    )
 
 
 class LoginResponseSerializer(serializers.Serializer):
@@ -109,7 +113,13 @@ class EmailVerificationSerializer(serializers.Serializer):
         max_length=6,
         min_length=6,
         help_text=_('6-digit OTP code sent to your email')
-    )
+    )    
+    
+    def validate_email(self, value):
+        return value.strip().lower()
 
 class ResendEmailVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
+    
+    def validate_email(self, value):
+        return value.strip().lower()
