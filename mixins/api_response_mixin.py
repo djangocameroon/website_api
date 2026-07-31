@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, List
+from typing import Any, List, Optional, Union
 
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
@@ -67,6 +67,11 @@ class APIResponseMixin:
         :return: DRF Response object with standardized pagination format.
         """
         paginator = PageNumberPagination()
+        if not 1 <= page_size <= 100:
+            return self.error(
+                message="page_size must be between 1 and 100",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
         paginator.page_size = page_size
 
         if not queryset.ordered:
@@ -89,4 +94,4 @@ class APIResponseMixin:
                 "total_pages": paginator.page.paginator.num_pages
             }
         }
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response(response_data, status=status_code)
