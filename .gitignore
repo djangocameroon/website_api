@@ -39,3 +39,6 @@ local_settings.py
 
 # Celery beat scheduler database file
 celerybeat-schedule
+
+# Graphify local code-graph index (local-only, session-scoped)
+graphify-out/

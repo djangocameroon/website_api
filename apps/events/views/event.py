@@ -6,7 +6,11 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.openapi import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
+from drf_spectacular.utils import (
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_serializer,
+)
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import serializers, status
 from rest_framework.decorators import action
@@ -27,6 +31,15 @@ from apps.users.serializers.general_serializers import PaginationSerializer
 from mixins.api_response_mixin import APIResponseMixin
 
 
+@extend_schema_serializer(many=False)
+class PaginatedEventListResponse(serializers.Serializer):
+    status = serializers.BooleanField()
+    message = serializers.CharField()
+    data = EventSerializer(many=True)  # type: ignore[assignment]
+    status_code = serializers.IntegerField(default=200)
+    pagination = PaginationSerializer()
+
+
 class EventViewSet(ModelViewSet, APIResponseMixin):
     queryset = Event.objects.all().select_related(
         "created_by",
@@ -38,6 +51,7 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
     authentication_classes = [OAuth2Authentication]
     http_method_names = ["get", "post", "put", "delete"]
     parser_classes = [JSONParser]
+    pagination_class = None
 
     def get_serializer_class(self):
         return EventSerializer
@@ -67,16 +81,7 @@ class EventViewSet(ModelViewSet, APIResponseMixin):
         ],
         responses={
             200: OpenApiResponse(
-                response=inline_serializer(
-                    name="PaginatedEventListResponse",
-                    fields={
-                        "status": serializers.BooleanField(),
-                        "message": serializers.CharField(),
-                        "data": EventSerializer(many=True),
-                        "status_code": serializers.IntegerField(default=200),
-                        "pagination": PaginationSerializer(),
-                    },
-                ),
+                response=PaginatedEventListResponse,
                 description=_("List of events"),
             )
         },
