@@ -15,12 +15,17 @@ Download [uv](https://github.com/astral-sh/uv) if not already installed.
 
 1. Create virtual environment:
    ```bash
-   uv venv
+   uv venv && uv sync
    ```
 
 2. Copy the environment file and fill in the values (including database credentials):
    ```bash
    cp .env.example .env
+   ```
+
+   Générez une valeur pour `SECRET_KEY` (obligatoire — sans elle, l'application refuse de démarrer avec l'erreur `django.core.exceptions.ImproperlyConfigured: The SECRET_KEY setting must not be empty.`) :
+   ```bash
+   uv run python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
    ```
 
 3. Run migrations:
