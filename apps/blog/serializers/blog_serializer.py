@@ -91,3 +91,8 @@ class BlogCreateUpdateResponseSerializer(serializers.ModelSerializer):
         fields = ['title', 'slug', 'content', 'cover_image', 'read_time', 'tags']
 
 
+class BlogLikeToggleResponseSerializer(serializers.Serializer):
+    liked = serializers.BooleanField()
+    likes_count = serializers.IntegerField()
+
+

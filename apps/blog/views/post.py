@@ -1,23 +1,30 @@
 from uuid import UUID
+
+from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.parsers import JSONParser
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.openapi import OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
-from django.utils.translation import gettext_lazy as _
-from django.http import Http404
-from django.db.models import Q
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from rest_framework import generics, permissions, status
+from rest_framework.parsers import JSONParser
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from apps.blog.errors import BlogNotFoundErrorResponse
 from apps.blog.models.blog import Blog
-from apps.blog.serializers.blog_serializer import BlogCreateUpdateResponseSerializer, BlogSerializer, BlogCreateUpdateSerializer
+from apps.blog.serializers.blog_serializer import (
+    BlogCreateUpdateResponseSerializer,
+    BlogCreateUpdateSerializer,
+    BlogLikeToggleResponseSerializer,
+    BlogSerializer,
+)
 from apps.blog.services.blog_likes import BlogLikeService
 from apps.blog.services.blog_views import BlogViewService
 from apps.users.serializers.general_serializers import ErrorResponseSerializer
-
 from mixins import APIResponseMixin
+
 
 class PostList(generics.ListCreateAPIView):
     queryset = Blog.objects.all()
@@ -178,6 +185,31 @@ class PostLikeToggleView(APIResponseMixin, APIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [JSONParser]
 
+    @extend_schema(
+        summary="Toggle blog post like",
+        description="Like the blog post if the user hasn't liked it yet, otherwise unlike it.",
+        tags=["Blog"],
+        request=None,
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                location=OpenApiParameter.PATH,
+                description='id of the blog post',
+                required=True,
+                type=OpenApiTypes.UUID,
+            )
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=BlogLikeToggleResponseSerializer,
+                description=_("Blog like toggled successfully"),
+            ),
+            404: OpenApiResponse(
+                response=BlogNotFoundErrorResponse,
+                description=_("Blog post not found"),
+            ),
+        },
+    )
     def post(self, request, pk):
         blog = get_object_or_404(Blog, pk=pk)
         result = BlogLikeService.toggle(blog, request.user)
