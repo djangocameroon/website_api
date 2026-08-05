@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -17,6 +18,13 @@ class Reservation(BaseModel):
 
     def __str__(self):
         return f"{self.user.email} -> {self.for_event.title}"
+
+    def save(self, *args, **kwargs):
+        if self.for_event.external_registration_link:
+            raise ValidationError({
+                "for_event": _("This event uses external registration; reservations cannot be made here."),
+            })
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "reservations"

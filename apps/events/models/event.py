@@ -3,9 +3,12 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.events.models.constants import (
-    COMMUNITIES, EVENT_CATEGORIES,
-    EVENT_TYPES, Community,
-    EventCategory, EventType,
+    COMMUNITIES,
+    EVENT_CATEGORIES,
+    EVENT_TYPES,
+    Community,
+    EventCategory,
+    EventType,
 )
 from apps.users.models.base_model import BaseModel
 from services import CalendarService
@@ -71,11 +74,11 @@ class Event(BaseModel):
         verbose_name=_("Event type"),
     )
     speakers = models.ManyToManyField(
-        'Speaker', related_name="events",
+        'Speaker', related_name="events", blank=True,
         verbose_name=_("Event speakers"), help_text=_("The speakers at the event"),
     )
     tags = models.ManyToManyField(
-        "EventTag", related_name="events", default=None,
+        "EventTag", related_name="events", default=None, blank=True,
         verbose_name=_("Event tags"), help_text=_("The tags for the event"),
     )
     level = models.CharField(
@@ -84,6 +87,10 @@ class Event(BaseModel):
     published = models.BooleanField(
         default=False, help_text=_("Whether the event is published"),
         verbose_name=_("Event published"),
+    )
+    external_registration_link = models.URLField(
+        null=True, blank=True, help_text=_("The link for external event registration"),
+        verbose_name=_("External registration link"),
     )
 
     def __str__(self):

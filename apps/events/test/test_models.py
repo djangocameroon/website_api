@@ -1,12 +1,13 @@
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.test import TestCase
 from django.utils.timezone import now, timedelta
 
-from apps.events.models.speaker import Speaker, SpeakerSpeciality
-from apps.events.models.event import Event, EventVenue, EventCity, EventRegion, EventTag
-from apps.events.models.reservation import Reservation
-from apps.events.models.event_registration import EventRegistration, EventAttendanceStats
+from apps.events.models.event import Event, EventCity, EventRegion, EventVenue
+from apps.events.models.event_registration import EventRegistration
 from apps.events.models.projects import Project
+from apps.events.models.reservation import Reservation
+from apps.events.models.speaker import Speaker
 
 User = get_user_model()
 
@@ -86,6 +87,18 @@ class ReservationModelTest(TestCase):
             for_event=self.event, user=self.user
         )
         self.assertIn(self.user.email, str(reservation))
+
+    def test_reservation_blocked_when_event_has_external_registration_link(self):
+        self.event.external_registration_link = "https://example.com/register"
+        self.event.save()
+        with self.assertRaises(ValidationError):
+            Reservation.objects.create(for_event=self.event, user=self.user)
+
+    def test_reservation_allowed_when_external_registration_link_is_empty_string(self):
+        self.event.external_registration_link = ""
+        self.event.save()
+        reservation = Reservation.objects.create(for_event=self.event, user=self.user)
+        self.assertFalse(reservation.check_in)
 
 
 class EventRegistrationModelTest(TestCase):

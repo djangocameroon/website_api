@@ -136,8 +136,24 @@ class SpeakerAdmin(ModelAdmin):
         )
 
 
+class EventAdminForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get("external_registration_link"):
+            if not cleaned_data.get("speakers"):
+                self.add_error("speakers", "Speakers are required unless an external registration link is set.")
+            if not cleaned_data.get("tags"):
+                self.add_error("tags", "Tags are required unless an external registration link is set.")
+        return cleaned_data
+
+
 @admin.register(Event)
 class EventAdmin(ModelAdmin):
+    form = EventAdminForm
     list_display = ("title", "category", "type", "for_community", "date", "published", "location")
     list_filter = ("published", "category", "type", "for_community", "date")
     search_fields = ("title", "description", "slug")
@@ -147,7 +163,7 @@ class EventAdmin(ModelAdmin):
     date_hierarchy = "date"
     ordering = ("-date",)
     fieldsets = (
-        (None, {"fields": ("title", "slug", "description", "thumbnail")}),
+        (None, {"fields": ("title", "slug", "description", "thumbnail", "external_registration_link")}),
         ("Classification", {"fields": ("category", "type", "for_community", "published")}),
         ("Location & Date", {"fields": ("location", "date")}),
         ("Speakers & Tags", {"fields": ("speakers", "tags")}),
@@ -155,7 +171,7 @@ class EventAdmin(ModelAdmin):
     )
 
     class Media:
-        js = ("events/admin/event_type_location.js",)
+        js = ("events/admin/event_type_location.js", "events/admin/event_external_registration.js")
 
 @admin.register(EventTag)
 class EventTagAdmin(ModelAdmin):

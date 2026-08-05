@@ -1,17 +1,32 @@
 from bs4 import BeautifulSoup
 from django.core.exceptions import (
+    MultipleObjectsReturned,
+    ObjectDoesNotExist,
+)
+from django.core.exceptions import (
     PermissionDenied as DjangoPermissionDenied,
+)
+from django.core.exceptions import (
     ValidationError as DjangoValidationError,
-    ObjectDoesNotExist, MultipleObjectsReturned,
 )
 from django.http import Http404
 from django.utils.translation import gettext as _
 from rest_framework import status
 from rest_framework.exceptions import (
-    ParseError, AuthenticationFailed, NotAuthenticated,
-    PermissionDenied as DRFPermissionDenied, NotFound,
-    NotAcceptable, UnsupportedMediaType, Throttled,
-    MethodNotAllowed, ValidationError as DRFValidationError,
+    AuthenticationFailed,
+    MethodNotAllowed,
+    NotAcceptable,
+    NotAuthenticated,
+    NotFound,
+    ParseError,
+    Throttled,
+    UnsupportedMediaType,
+)
+from rest_framework.exceptions import (
+    PermissionDenied as DRFPermissionDenied,
+)
+from rest_framework.exceptions import (
+    ValidationError as DRFValidationError,
 )
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
@@ -117,6 +132,7 @@ def _get_status_code(exc):
         UnsupportedMediaType: status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         Throttled: status.HTTP_429_TOO_MANY_REQUESTS,
         ValueError: status.HTTP_400_BAD_REQUEST,
+        DjangoValidationError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     }
     return exception_status_map.get(type(exc), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -135,6 +151,7 @@ def _get_default_message(exc):
         NotAcceptable: _('The request is not acceptable.'),
         UnsupportedMediaType: _('Please provide a valid media type.'),
         Throttled: _('Request was throttled. Expected available in {0} seconds.'),
+        DjangoValidationError: _('Validation error.'),
     }
     return default_message_map.get(type(exc), _('An unexpected error occurred.'))
 
@@ -142,6 +159,10 @@ def _get_default_message(exc):
 def _get_errors(exc, default_message):
     if isinstance(exc, Throttled):
         return [default_message.format(exc.wait)]
+    if isinstance(exc, DjangoValidationError):
+        if hasattr(exc, "message_dict"):
+            return _flatten_error_dict(exc.message_dict)
+        return list(exc.messages)
     if isinstance(exc, ValueError):
         return [str(exc)]
     if isinstance(exc, Http404) or isinstance(exc, ObjectDoesNotExist):
